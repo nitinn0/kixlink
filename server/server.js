@@ -3,6 +3,7 @@ const app = express();
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const matchRoutes = require('./routes/matchRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const teamManagement = require('./routes/teamManagement');
 
 const dotenv = require('dotenv');
@@ -14,7 +15,7 @@ app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/match', matchRoutes);
 app.use('/teamMgmt', teamManagement);
-
+app.use('/dashboard', profileRoutes);
 
 const PORT = 4000;
 app.listen(PORT, () => {

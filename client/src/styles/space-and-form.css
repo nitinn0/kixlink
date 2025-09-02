@@ -1,0 +1,223 @@
+/* === Space & Form combined styles (space-and-form.css) === */
+
+/* ----- Logo glow & form glass ----- */
+.kix-logo {
+  width: 8rem;
+  filter: drop-shadow(0 0 8px #ff53bb) drop-shadow(0 0 12px #8f51ea);
+  animation: logo-neon 2s ease-in-out infinite;
+  z-index: 10;
+}
+@keyframes logo-neon {
+  0%,100% {
+    filter: drop-shadow(0 0 6px #ff53bb) drop-shadow(0 0 10px #8f51ea);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px #ff53bb) drop-shadow(0 0 30px #8f51ea);
+  }
+}
+
+/* Glass card (apply to your form container) */
+.login-card {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: neon-border 6s ease-in-out infinite;
+}
+@keyframes neon-border {
+  0%   { box-shadow: 0 0 12px rgba(254,83,186,0.18); }
+  50%  { box-shadow: 0 0 18px rgba(142,81,234,0.18); }
+  100% { box-shadow: 0 0 12px rgba(0,68,255,0.12); }
+}
+
+/* Inputs neon focus */
+.login-card input {
+  transition: box-shadow .25s ease, border-color .25s ease;
+}
+.login-card input:focus {
+  box-shadow: 0 0 12px rgba(254,83,186,0.12), 0 0 20px rgba(142,81,234,0.08);
+  border-color: rgba(254,83,186,0.5);
+}
+
+/* Neon heading */
+.neon-heading {
+  text-shadow: 0 0 6px #ff53bb, 0 0 12px #8f51ea, 0 0 18px #0044ff;
+}
+
+/* ----- Background star layers (3 layers) ----- */
+/* These are the full-page animated star layers. Keep the IDs as they are in your JSX (#stars, #stars2, #stars3) */
+#stars, #stars2, #stars3 {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 220%;
+  height: 220%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* fine-grain stars - faster, denser */
+#stars {
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 30px 30px;
+  opacity: 0.36;
+  animation: moveStarsA 120s linear infinite;
+}
+
+/* mid layer - slower, less dense */
+#stars2 {
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 80px 80px;
+  opacity: 0.24;
+  animation: moveStarsB 180s linear infinite;
+  transform: translateY(200px);
+}
+
+/* large faint stars */
+#stars3 {
+  background-image: radial-gradient(#ffffff 2px, transparent 1%);
+  background-size: 150px 150px;
+  opacity: 0.12;
+  animation: moveStarsC 300s linear infinite;
+  transform: translateY(600px);
+}
+
+@keyframes moveStarsA { from { transform: translateY(0); } to { transform: translateY(-1200px); } }
+@keyframes moveStarsB { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
+@keyframes moveStarsC { from { transform: translateY(0); } to { transform: translateY(-3000px); } }
+
+/* ----- Futuristic (Space) Button ----- */
+/* main button */
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 13rem;
+  height: 3rem;
+  position: relative;
+  overflow: hidden;
+  background-size: 300% 300%;
+  cursor: pointer;
+  backdrop-filter: blur(1rem);
+  border-radius: 5rem;
+  transition: transform .25s ease, opacity .2s ease;
+  animation: gradient_301 5s ease infinite;
+  border: double 4px transparent;
+  background-image:
+    linear-gradient(#212121, #212121),
+    linear-gradient(137.48deg, #ffdb3b 10%, #fe53bb 45%, #8f51ea 67%, #0044ff 87%);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  color: #fff;
+  font-weight: 700;
+  z-index: 2;
+}
+.btn:hover { transform: scale(1.06); }
+
+/* internal "stars" effect for the button (use class .btn-stars-inner, NOT #stars) */
+.btn-stars-inner {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 5rem;
+  overflow: hidden;
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 20px 20px;
+  opacity: 0.12;
+  animation: btnStarsMove 8s linear infinite;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+@keyframes btnStarsMove {
+  from { background-position: 0 0; }
+  to   { background-position: 200px -120px; }
+}
+
+/* soft colored glow behind the button */
+.btn-glow {
+  position: absolute;
+  right: -4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: .5rem;
+  z-index: 0;
+  pointer-events: none;
+}
+.btn-glow .circle {
+  width: 6rem;
+  height: 28px;
+  border-radius: 999px;
+  filter: blur(28px);
+  animation: pulse_3011 4s infinite;
+}
+.btn-glow .circle:nth-child(1) { background: rgba(254,83,186,0.64); }
+.btn-glow .circle:nth-child(2) { background: rgba(142,81,234,0.72); }
+
+/* small active/pressed state */
+.btn:active {
+  transform: scale(.98);
+  border-color: rgba(254,83,186,0.5);
+  animation-play-state: paused;
+}
+.btn:active .circle { background: rgba(254,83,186,0.9); }
+
+/* button animations */
+@keyframes gradient_301 {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes pulse_3011 {
+  0%   { transform: scale(0.75); }
+  70%  { transform: scale(1); }
+  100% { transform: scale(0.75); }
+}
+
+/* Starry Background */
+#stars, #stars2, #stars3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent url("https://www.transparenttextures.com/patterns/stardust.png") repeat top center;
+  z-index: 0;
+  animation: moveStars 60s linear infinite;
+}
+
+#stars2 {
+  animation: moveStars 120s linear infinite;
+  opacity: 0.5;
+}
+#stars3 {
+  animation: moveStars 180s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes moveStars {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -10000px 5000px;
+  }
+}
+
+/* Glowing Button Hover */
+button.btn {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Continuous Glow for Logo */
+img[src*="logo"] {
+  filter: drop-shadow(0 0 25px #ff53bb);
+}
