@@ -67,7 +67,7 @@ const Login = () => {
           boxShadow: "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)"
         }}
       >
-        <h1 className="text-white text-4xl font-extrabold mb-6 tracking-wide drop-shadow-lg">Login</h1>
+        <h1 className="text-white text-3xl font-extrabold mb-6 tracking-wide drop-shadow-lg">Login</h1>
 
         {/* Email Input */}
         <input
@@ -77,7 +77,7 @@ const Login = () => {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
+          className="w-full p-2 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
         />
 
         {/* Password Input */}
@@ -88,7 +88,7 @@ const Login = () => {
           value={formData.password}
           onChange={handleChange}
           required
-          className="w-full p-3 mb-6 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
+          className="w-full p-2 mb-6 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
         />
 
         {/* Neon Glowing Login Button */}
