@@ -14,7 +14,7 @@ const verifyAdmin = (req, res, next) => {
     }
     
     try {
-        const decoded = jwt.verify(token, 'my-key');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (!decoded.isAdmin) {
             return res.status(403).json({ error: "Access denied. Admins only" });
         }

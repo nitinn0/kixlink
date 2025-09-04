@@ -11,7 +11,7 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -21,6 +21,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -28,8 +29,14 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:4000/register", formData);
+      const res = await axios.post("http://localhost:4000/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
       if (res.data.success) {
+        alert(res.data.message);
         navigate("/login");
       } else {
         alert(res.data.message);
@@ -46,15 +53,15 @@ const Register = () => {
     <div
       className="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center overflow-hidden"
       style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1517747614396-d21a78b850e8?q=80&w=1600&auto=format&fit=crop')`
+        backgroundImage: `url('https://images.unsplash.com/photo-1517747614396-d21a78b850e8?q=80&w=1600&auto=format&fit=crop')`,
       }}
     >
-      {/* Animated Starry Background */}
+      {/* Stars Background */}
       <div id="stars"></div>
       <div id="stars2"></div>
       <div id="stars3"></div>
 
-      {/* KixLink Logo with Continuous Glow */}
+      {/* Logo */}
       <motion.img
         src={kixlinkLogo}
         alt="KixLink Logo"
@@ -64,13 +71,13 @@ const Register = () => {
           filter: [
             "drop-shadow(0 0 15px #ff53bb)",
             "drop-shadow(0 0 35px #8f51ea)",
-            "drop-shadow(0 0 15px #ff53bb)"
-          ]
+            "drop-shadow(0 0 15px #ff53bb)",
+          ],
         }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Glassmorphic Register Form */}
+      {/* Register Form */}
       <motion.form
         onSubmit={handleSubmit}
         initial={{ opacity: 0, y: 60 }}
@@ -78,12 +85,15 @@ const Register = () => {
         transition={{ duration: 1 }}
         className="relative bg-white/10 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-2xl px-10 py-4 w-[400px] flex mt-28 flex-col items-center"
         style={{
-          boxShadow: "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)"
+          boxShadow:
+            "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)",
         }}
       >
-        <h1 className="text-white text-3xl font-bold mb-4 tracking-wide drop-shadow-lg">Register</h1>
+        <h1 className="text-white text-3xl font-bold mb-4 tracking-wide drop-shadow-lg">
+          Register
+        </h1>
 
-        {/* Name Input */}
+        {/* Name */}
         <input
           type="text"
           name="name"
@@ -94,7 +104,7 @@ const Register = () => {
           className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
         />
 
-        {/* Email Input */}
+        {/* Email */}
         <input
           type="email"
           name="email"
@@ -105,7 +115,7 @@ const Register = () => {
           className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
         />
 
-        {/* Password Input */}
+        {/* Password */}
         <input
           type="password"
           name="password"
@@ -116,7 +126,7 @@ const Register = () => {
           className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
         />
 
-        {/* Confirm Password Input */}
+        {/* Confirm Password */}
         <input
           type="password"
           name="confirmPassword"
@@ -127,7 +137,7 @@ const Register = () => {
           className="w-full p-3 mb-6 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#3f7cff] transition duration-300"
         />
 
-        {/* Neon Glowing Register Button */}
+        {/* Register Button */}
         <motion.button
           type="submit"
           whileHover={{ scale: 1.08 }}

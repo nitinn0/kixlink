@@ -14,7 +14,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, 'my-key');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         req.userId = decoded.userId;
         req.isAdmin = decoded.isAdmin; 

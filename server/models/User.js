@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+
 
 const userSchema = new mongoose.Schema({
-    username: {type: String, required:true, unique: true},
+    name: {type: String, required:true},
+    email: {type: String, required:true, unique: true},
+    username: {type: String, required:false, unique: true},
     password: {type: String, required:true},
     isAdmin: {type:Boolean, default:false}
 });
@@ -30,8 +32,5 @@ const matchModel = mongoose.model('Match', matchSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 const teamModel = mongoose.model("Team", teamSchema);
 
-const db = "mongodb+srv://nitinkapoor117:PRAJWa67IbBncLHG@test-db.rwlyl.mongodb.net/kixlink-db"
-
-mongoose.connect(db).then(() => console.log("DB connected")).catch((err)=> console.log(err));
 
 module.exports = {userModel, matchModel, chatModel, teamModel};
