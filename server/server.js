@@ -7,6 +7,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const connectDB = require('./config/db');
 const teamManagement = require('./routes/teamManagement');
 const cors = require('cors');
+const dashboardRoutes = require('./routes/dashboard');
 
 const dotenv = require('dotenv');
 
@@ -19,6 +20,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use('/', dashboardRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/match', matchRoutes);

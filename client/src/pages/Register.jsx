@@ -37,7 +37,7 @@ const Register = () => {
 
       if (res.data.success) {
         alert(res.data.message);
-        navigate("/login");
+        navigate("/auth/login");
       } else {
         alert(res.data.message);
       }
@@ -150,7 +150,7 @@ const Register = () => {
         {/* Login Link */}
         <p
           className="mt-6 text-gray-300 hover:text-[#ff53bb] cursor-pointer transition duration-300"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/auth/login")}
         >
           Already have an account? Login
         </p>

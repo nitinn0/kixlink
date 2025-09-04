@@ -20,7 +20,7 @@ const Login = () => {
     try {
       const res = await axios.post("http://localhost:4000/auth/login", formData);
       if (res.data.success) {
-        navigate("/dashboard");
+        navigate("/");
       } else {
         alert(res.data.message);
       }
@@ -104,7 +104,7 @@ const Login = () => {
         {/* Register Link */}
         <p
           className="mt-6 text-gray-300 hover:text-[#ff53bb] cursor-pointer transition duration-300"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate("/auth/register")}
         >
           Don’t have an account? Register
         </p>
