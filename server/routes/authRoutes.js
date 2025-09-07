@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { userModel } = require("../models/User");
+const { playerModel } = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -16,7 +17,7 @@ router.post("/register", async (req, res) => {
 
     // Check if user already exists (by email or username)
     const existingUser = await userModel.findOne({
-      $or: [{ email }, { username }]
+      $or: [{ email }, { username }],
     });
 
     if (existingUser) {
@@ -24,7 +25,7 @@ router.post("/register", async (req, res) => {
         success: false,
         message: existingUser.email === email
           ? "Email already registered"
-          : "Username already taken"
+          : "Username already taken",
       });
     }
 
@@ -36,17 +37,32 @@ router.post("/register", async (req, res) => {
       name,
       email,
       username,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     await newUser.save();
 
-    res.status(201).json({ success: true, message: "User registered successfully" });
+    // 🔹 Automatically register the user as a player
+    const existingPlayer = await playerModel.findOne({ $or: [{ email }, { username }] });
+    if (!existingPlayer) {
+      const newPlayer = new playerModel({
+        name,
+        email,
+        username,
+      });
+      await newPlayer.save();
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "User registered and added as player successfully",
+    });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error. Please try again later."
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 });

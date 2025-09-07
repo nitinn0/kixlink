@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const userSchema = new mongoose.Schema({
     name: {type: String, required:true},
     email: {type: String, required:true, unique: true},
@@ -27,10 +26,16 @@ const teamSchema = new mongoose.Schema({
     teamName: {type: String, required:true, unique:true}
 })
 
+const playerSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
+    createdAt: { type: Date, default: Date.now },
+})
+
 const userModel = mongoose.model('User', userSchema);
 const matchModel = mongoose.model('Match', matchSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 const teamModel = mongoose.model("Team", teamSchema);
+const playerModel = mongoose.model("Players", playerSchema);
 
-
-module.exports = {userModel, matchModel, chatModel, teamModel};
+module.exports = {userModel, matchModel, chatModel, teamModel, playerModel};
