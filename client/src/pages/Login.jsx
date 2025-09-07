@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import kixlinkLogo from "../assets/logo.png"; 
+import kixlinkLogo from "../assets/logo.png";
 import "../styles/space-and-form.css";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({
+    identifier: "", // ✅ One field for email OR username
+    password: ""
+  });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -17,8 +20,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const res = await axios.post("http://localhost:4000/auth/login", formData);
+
       if (res.data.success) {
         navigate("/");
       } else {
@@ -26,7 +31,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error(error);
-      alert("Login failed!");
+      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,14 +49,18 @@ const Login = () => {
       <div id="stars2"></div>
       <div id="stars3"></div>
 
-      {/* KixLink Logo with Continuous Glow */}
+      {/* KixLink Logo */}
       <motion.img
         src={kixlinkLogo}
         alt="KixLink Logo"
         className="absolute top-10 left-1/2 transform -translate-x-1/2 w-40 drop-shadow-[0_0_25px_#ff53bb]"
         animate={{
           scale: [1, 1.08, 1],
-          filter: ["drop-shadow(0 0 15px #ff53bb)", "drop-shadow(0 0 35px #8f51ea)", "drop-shadow(0 0 15px #ff53bb)"]
+          filter: [
+            "drop-shadow(0 0 15px #ff53bb)",
+            "drop-shadow(0 0 35px #8f51ea)",
+            "drop-shadow(0 0 15px #ff53bb)"
+          ]
         }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -64,17 +73,20 @@ const Login = () => {
         transition={{ duration: 1 }}
         className="relative bg-white/10 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-2xl px-10 py-8 w-[400px] flex mt-20 flex-col items-center"
         style={{
-          boxShadow: "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)"
+          boxShadow:
+            "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)"
         }}
       >
-        <h1 className="text-white text-3xl font-extrabold mb-6 tracking-wide drop-shadow-lg">Login</h1>
+        <h1 className="text-white text-3xl font-extrabold mb-6 tracking-wide drop-shadow-lg">
+          Login
+        </h1>
 
-        {/* Email Input */}
+        {/* Email or Username Input */}
         <input
-          type="email"
-          name="email"
-          placeholder="Enter Email"
-          value={formData.email}
+          type="text"
+          name="identifier"
+          placeholder="Enter Email or Username"
+          value={formData.identifier}
           onChange={handleChange}
           required
           className="w-full p-2 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
@@ -91,7 +103,7 @@ const Login = () => {
           className="w-full p-2 mb-6 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
         />
 
-        {/* Neon Glowing Login Button */}
+        {/* Neon Login Button */}
         <motion.button
           type="submit"
           whileHover={{ scale: 1.08 }}

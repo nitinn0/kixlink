@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -14,42 +14,15 @@ import {
   Cell,
 } from "recharts";
 import { Home, Users, Trophy, Settings, Bell, Search, LogOut } from "lucide-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const matches = [
-  {
-    id: 1,
-    teamA: "Red Hawks",
-    teamB: "Blue Warriors",
-    date: "2025-09-05",
-    time: "4:30 PM",
-    status: "upcoming",
-  },
-  {
-    id: 2,
-    teamA: "Sky Raiders",
-    teamB: "Golden Titans",
-    date: "2025-09-03",
-    time: "5:00 PM",
-    status: "ongoing",
-  },
-  {
-    id: 3,
-    teamA: "Shadow Strikers",
-    teamB: "Iron Wolves",
-    date: "2025-09-02",
-    time: "6:00 PM",
-    status: "completed",
-  },
-  {
-    id: 4,
-    teamA: "Royal Rangers",
-    teamB: "Storm Breakers",
-    date: "2025-09-04",
-    time: "3:00 PM",
-    status: "upcoming",
-  },
+  { id: 1, teamA: "Red Hawks", teamB: "Blue Warriors", date: "2025-09-05", time: "4:30 PM", status: "upcoming" },
+  { id: 2, teamA: "Sky Raiders", teamB: "Golden Titans", date: "2025-09-03", time: "5:00 PM", status: "ongoing" },
+  { id: 3, teamA: "Shadow Strikers", teamB: "Iron Wolves", date: "2025-09-02", time: "6:00 PM", status: "completed" },
+  { id: 4, teamA: "Royal Rangers", teamB: "Storm Breakers", date: "2025-09-04", time: "3:00 PM", status: "upcoming" },
 ];
-
 
 const matchData = [
   { day: "Mon", matches: 3 },
@@ -79,6 +52,17 @@ const teamDistribution = [
 const COLORS = ["#00f0ff", "#ff00f7", "#9dff00", "#ffae00"];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
+  // ✅ Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.clear();
+    toast.success("Logged out successfully!");
+    navigate("/auth/login", { replace: true });
+  };
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white">
       {/* Sidebar */}
@@ -99,7 +83,10 @@ const Dashboard = () => {
           </a>
         </nav>
         <div className="mt-auto">
-          <button className="flex items-center gap-3 text-red-400 hover:text-red-500">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 text-red-400 hover:text-red-500 transition"
+          >
             <LogOut size={20} /> Logout
           </button>
         </div>
@@ -192,73 +179,6 @@ const Dashboard = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          {/* Matches Section */}
-<div className="glass rounded-2xl p-6 neon-card mt-8">
-  <h3 className="text-2xl font-semibold mb-6 neon-text">⚽ Match Center</h3>
-
-  {/* Tabs */}
-  <div className="flex gap-6 mb-6">
-    {["upcoming", "ongoing", "completed"].map((tab, index) => (
-      <motion.button
-        key={index}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm uppercase tracking-wide shadow-lg hover:from-pink-500 hover:to-purple-600 transition"
-      >
-        {tab === "upcoming" && "Upcoming Matches"}
-        {tab === "ongoing" && "Live Matches"}
-        {tab === "completed" && "Completed Matches"}
-      </motion.button>
-    ))}
-  </div>
-
-  {/* Matches Table */}
-  <div className="overflow-x-auto">
-    <table className="w-full text-left text-white border-separate border-spacing-y-3">
-      <thead>
-        <tr className="text-gray-300 text-sm uppercase tracking-wider">
-          <th className="py-3 px-4">Match</th>
-          <th className="py-3 px-4">Date</th>
-          <th className="py-3 px-4">Time</th>
-          <th className="py-3 px-4 text-center">Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {matches.map((match) => (
-          <motion.tr
-            key={match.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="glass hover:scale-[1.02] transition-transform cursor-pointer"
-          >
-            <td className="py-3 px-4 font-semibold">
-              {match.teamA} <span className="text-cyan-400">vs</span> {match.teamB}
-            </td>
-            <td className="py-3 px-4">{match.date}</td>
-            <td className="py-3 px-4">{match.time}</td>
-            <td className="py-3 px-4 text-center">
-              <span
-                className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                  match.status === "upcoming"
-                    ? "bg-yellow-400/20 text-yellow-300 border border-yellow-400"
-                    : match.status === "ongoing"
-                    ? "bg-green-400/20 text-green-300 border border-green-400 animate-pulse"
-                    : "bg-gray-400/20 text-gray-300 border border-gray-500"
-                }`}
-              >
-                {match.status === "upcoming" && "Upcoming"}
-                {match.status === "ongoing" && "Live"}
-                {match.status === "completed" && "Completed"}
-              </span>
-            </td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
-
         </div>
       </div>
     </div>

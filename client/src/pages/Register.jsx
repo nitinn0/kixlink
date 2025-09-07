@@ -9,45 +9,51 @@ const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
 
+  // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Handle form submit
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await axios.post("http://localhost:4000/auth/register", {
+      name: formData.name,
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (res.data.success) {
+      alert(res.data.message);
+      navigate("/auth/login");
+    } else {
+      alert(res.data.message);
     }
+  } catch (error) {
+    console.error("Registration Error:", error);
+    alert(error.response?.data?.message || "Server error! Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    setLoading(true);
-    try {
-      const res = await axios.post("http://localhost:4000/auth/register", {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (res.data.success) {
-        alert(res.data.message);
-        navigate("/auth/login");
-      } else {
-        alert(res.data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Registration failed!");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
@@ -110,6 +116,17 @@ const Register = () => {
           name="email"
           placeholder="Enter Email"
           value={formData.email}
+          onChange={handleChange}
+          required
+          className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
+        />
+
+        {/* Username */}
+        <input
+          type="text"
+          name="username"
+          placeholder="Enter Username"
+          value={formData.username}
           onChange={handleChange}
           required
           className="w-full p-3 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
