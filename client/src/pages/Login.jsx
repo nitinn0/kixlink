@@ -17,25 +17,30 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const res = await axios.post("http://localhost:4000/auth/login", formData);
+  try {
+    const res = await axios.post("http://localhost:4000/auth/login", formData);
 
-      if (res.data.success) {
-        navigate("/");
-      } else {
-        alert(res.data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+    // ✅ Save the token properly
+    localStorage.setItem("token", res.data.token);
+    console.log("Token saved:", res.data.token);
+
+    if (res.data.success) {
+      navigate("/");
+    } else {
+      alert(res.data.message);
     }
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div

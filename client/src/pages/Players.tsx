@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { Search, Users } from "lucide-react";
 import { toast } from "react-toastify";
+import api from "../api/axiosConfig";
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
@@ -10,33 +11,49 @@ const Players = () => {
   const [search, setSearch] = useState("");
 
   // ✅ Fetch Players from Backend
-  const fetchPlayers = async () => {
-    try {
-      setLoading(true);
+const fetchPlayers = async () => {
+  try {
+    setLoading(true);
 
-      // ✅ Get token from localStorage (assuming you store it at login)
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    console.log("Token:", token);
 
-      const { data } = await axios.get("http://localhost:4000/players", {
-        headers: {
-          Authorization: `Bearer ${token}`, // ✅ Send token
-        },
-      });
-
-      setPlayers(data);
+    if (!token) {
+      toast.error("Please login to view players!");
       setLoading(false);
-    } catch (error: any) {
-      console.error(error);
-      if (error.response?.status === 404) {
-        toast.warning("No players found!");
-      } else if (error.response?.status === 401) {
-        toast.error("Unauthorized! Please login again.");
-      } else {
-        toast.error("Failed to fetch players!");
-      }
-      setLoading(false);
+      return;
     }
-  };
+
+    // ✅ Correct syntax here
+    const { data } = await api.get("/players", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setPlayers(data);
+    setLoading(false);
+  } catch (error: any) {
+    console.error("Fetch players error:", error);
+
+    if (error.response?.status === 404) {
+      toast.warning("No players found!");
+    } else if (error.response?.status === 401) {
+      toast.error("Unauthorized! Please login again.");
+      localStorage.removeItem("token");
+      setTimeout(() => (window.location.href = "/login"), 1500);
+    } else if (error.response?.status === 403) {
+      toast.error("Invalid or expired token! Please login again.");
+      localStorage.removeItem("token");
+      setTimeout(() => (window.location.href = "/login"), 1500);
+    } else {
+      toast.error("Failed to fetch players!");
+    }
+
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchPlayers();
