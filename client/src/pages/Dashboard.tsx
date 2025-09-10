@@ -72,9 +72,13 @@ const Dashboard = () => {
           <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
             <Home size={22} /> Dashboard
           </a>
-          <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
-            <Users size={22} /> Players
-          </a>
+          <a
+  onClick={() => navigate("/players")}
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
+>
+  <Users size={22} /> Players
+</a>
+
           <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
             <Trophy size={22} /> Tournaments
           </a>
