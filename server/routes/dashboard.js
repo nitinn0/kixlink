@@ -25,4 +25,15 @@ router.get('/players', verifyToken, async(req, res) => {
     }
 });
 
+router.get('/arena', async(req, res) => {
+  try{
+  const arenaName = arenaModel.find().sort({createdAt: -1});
+  if(!arenaName || arenaName.length === 0){
+    return res.status(404).json({error: "No Arenas Found"})
+  }
+  return res.status(200).json(arenaName);
+}catch(error){
+  return res.status(500).json({error: error.message});
+}
+})
 module.exports = router;

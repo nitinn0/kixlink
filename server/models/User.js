@@ -21,6 +21,11 @@ const chatSchema = new mongoose.Schema({
     timestamp:{type: Date, default:Date.now}
 });
 
+const arenaSchema = new mongoose.Schema({
+    arenaName: {type: [String], required:true, unique:true, default: []},
+    totalCapacity: {type: String, required:false}
+})
+
 const teamSchema = new mongoose.Schema({
     players: {type: [String], default:[]},
     teamName: {type: String, required:true, unique:true}
@@ -37,5 +42,6 @@ const matchModel = mongoose.model('Match', matchSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 const teamModel = mongoose.model("Team", teamSchema);
 const playerModel = mongoose.model("Players", playerSchema);
+const arenaModel = mongoose.model("Arena", arenaSchema)
 
-module.exports = {userModel, matchModel, chatModel, teamModel, playerModel};
+module.exports = {userModel, matchModel, chatModel, teamModel, playerModel, arenaModel};

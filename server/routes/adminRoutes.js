@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {userModel} = require('../models/User');
+const {userModel, arenaModel} = require('../models/User');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 const verifyToken = require('../middlewares/verifyToken');
 const {matchModel} = require('../models/User');
@@ -45,6 +45,20 @@ router.post('/deleteMatch/:Matchid', verifyAdmin, async(req, res) =>{
         console.log(error);
     }
 });
+
+router.post('/addArena', verifyAdmin, async(req, res) => {
+    try {
+        const { arenaName, totalCapacity } = req.body;
+        if(!arenaName){
+            return res.status(401).json({message: "All fields required"});
+        }
+        const newArena = new arenaModel({ arenaName, totalCapacity});
+        await newArena.save();
+        res.status(200).json({message: "Arena Added Successfully"});
+    } catch(error){
+        res.status(500).json({error: error.message})
+    }
+})
 
 module.exports = router;
 

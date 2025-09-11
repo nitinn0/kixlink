@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { Search, Users } from "lucide-react";
 import { toast } from "react-toastify";
@@ -11,49 +10,45 @@ const Players = () => {
   const [search, setSearch] = useState("");
 
   // ✅ Fetch Players from Backend
-const fetchPlayers = async () => {
-  try {
-    setLoading(true);
+  const fetchPlayers = async () => {
+    try {
+      setLoading(true);
 
-    const token = localStorage.getItem("token");
-    console.log("Token:", token);
+      const token = localStorage.getItem("token");
+      console.log("Token:", token);
 
-    if (!token) {
-      toast.error("Please login to view players!");
+      if (!token) {
+        toast.error("Please login to view players!");
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await api.get("/players", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setPlayers(data);
       setLoading(false);
-      return;
+    } catch (error: any) {
+      console.error("Fetch players error:", error);
+
+      if (error.response?.status === 404) {
+        toast.warning("No players found!");
+      } else if (error.response?.status === 401) {
+        toast.error("Unauthorized! Please login again.");
+        localStorage.removeItem("token");
+        setTimeout(() => (window.location.href = "/auth/login"), 1500);
+      } else if (error.response?.status === 403) {
+        toast.error("Invalid or expired token! Please login again.");
+        localStorage.removeItem("token");
+        setTimeout(() => (window.location.href = "/auth/login"), 1500);
+      } else {
+        toast.error("Failed to fetch players!");
+      }
+
+      setLoading(false);
     }
-
-    // ✅ Correct syntax here
-    const { data } = await api.get("/players", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    setPlayers(data);
-    setLoading(false);
-  } catch (error: any) {
-    console.error("Fetch players error:", error);
-
-    if (error.response?.status === 404) {
-      toast.warning("No players found!");
-    } else if (error.response?.status === 401) {
-      toast.error("Unauthorized! Please login again.");
-      localStorage.removeItem("token");
-      setTimeout(() => (window.location.href = "/login"), 1500);
-    } else if (error.response?.status === 403) {
-      toast.error("Invalid or expired token! Please login again.");
-      localStorage.removeItem("token");
-      setTimeout(() => (window.location.href = "/login"), 1500);
-    } else {
-      toast.error("Failed to fetch players!");
-    }
-
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchPlayers();
@@ -100,7 +95,7 @@ const fetchPlayers = async () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="glass neon-card rounded-2xl p-5 shadow-lg"
+          className="glass neon-card rounded-xl mt-10 p-10 shadow-lg"
         >
           <table className="w-full text-left border-collapse">
             <thead>
@@ -115,18 +110,29 @@ const fetchPlayers = async () => {
             <tbody>
               {filteredPlayers.map((player: any, index: number) => (
                 <motion.tr
-                  key={player._id}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="hover:bg-white/10 transition"
-                >
-                  <td className="p-3 text-gray-300">{index + 1}</td>
-                  <td className="p-3 font-semibold">{player.name}</td>
-                  <td className="p-3">{player.position}</td>
-                  <td className="p-3 text-cyan-300">{player.goals}</td>
-                  <td className="p-3">{player.team}</td>
-                </motion.tr>
+  key={player._id}
+  initial={{ opacity: 0, y: 15 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: index * 0.05 }}
+  className="transition duration-200 ease-in-out"
+>
+  <td className="p-3 text-gray-300 transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_8px_rgba(34,211,238,0.4)] rounded-md cursor-pointer">
+    {index + 1}
+  </td>
+  <td className="p-3 font-semibold transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_8px_rgba(34,211,238,0.4)] rounded-md cursor-pointer">
+    {player.name}
+  </td>
+  <td className="p-3 transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_8px_rgba(34,211,238,0.4)] rounded-md cursor-pointer">
+    {player.position || "—"}
+  </td>
+  <td className="p-3 text-cyan-300 transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_8px_rgba(34,211,238,0.4)] rounded-md cursor-pointer">
+    {player.goals ?? 0}
+  </td>
+  <td className="p-3 transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_8px_rgba(34,211,238,0.4)] rounded-md cursor-pointer">
+    {player.team || "—"}
+  </td>
+</motion.tr>
+
               ))}
             </tbody>
           </table>
