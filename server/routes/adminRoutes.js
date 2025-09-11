@@ -9,15 +9,15 @@ const bcrypt = require('bcrypt');
 // Admin registration
 
 router.post('/newAdmin', async(req, res) => {
-    const { username, password } = req.body;
+    const { name, email, username, password } = req.body;
 
     try{
         const hashedPassword = await bcrypt.hash(password, 10);
-        const admin = new userModel({username, password: hashedPassword, isAdmin:true});
+        const admin = new userModel({name, email, username, password: hashedPassword, isAdmin:true});
         await admin.save();
         res.status(201).json({message:"Admin created successfully"});
     } catch(error){
-        res.status(500).json({error: "Error creating Admin"});
+        res.status(500).json({error: error.message});
     }
 });
 
