@@ -31,7 +31,7 @@ const ArenasPage: React.FC = () => {
   }, []);
 
   const filteredArenas = arenas.filter((arena) =>
-    arena.arenaName.toLowerCase().includes(search.toLowerCase())
+    arena.arenaName?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -58,59 +58,51 @@ const ArenasPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading ? (
         <div className="flex justify-center items-center flex-1">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
         </div>
       ) : filteredArenas.length === 0 ? (
-        <p className="text-gray-400 text-center mt-10 text-lg">
-          No arenas found 🏟️
-        </p>
+        <p className="text-gray-400 text-center mt-10 text-lg">No arenas found 😕</p>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="glass neon-card rounded-xl mt-10 p-10 shadow-lg overflow-x-auto"
+          className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-10"
         >
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="p-3">#</th>
-                <th className="p-3">Image</th>
-                <th className="p-3">Arena Name</th>
-                <th className="p-3">Capacity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredArenas.map((arena, index) => (
-                <motion.tr
-                  key={arena._id}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="transition duration-200 ease-in-out"
-                >
-                  <td className="p-3 text-gray-300 hover:bg-white/10 rounded-md cursor-pointer">
-                    {index + 1}
-                  </td>
-                  <td className="p-3 hover:bg-white/10 rounded-md cursor-pointer">
-                    <img
-                      src={arena.image_url || "https://via.placeholder.com/80"}
-                      alt={arena.arenaName}
-                      className="w-20 h-12 object-cover rounded-md"
-                    />
-                  </td>
-                  <td className="p-3 font-semibold hover:bg-white/10 rounded-md cursor-pointer">
-                    {arena.arenaName}
-                  </td>
-                  <td className="p-3 flex items-center gap-2 text-cyan-300 hover:bg-white/10 rounded-md cursor-pointer">
-                    <Users size={16} /> {arena.totalCapacity ?? "N/A"}
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+          {filteredArenas.map((arena, index) => (
+           <motion.div
+  key={arena._id}
+  initial={{ opacity: 0, y: 15 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: index * 0.05 }}
+  className="glass neon-card rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] transition w-[300px] mx-auto"
+>
+  {/* Arena Image */}
+  <img
+    src={
+      arena.image_url ||
+      "https://images.unsplash.com/photo-1517747614396-d21a78b850e8?q=80&w=1600&auto=format&fit=crop"
+    }
+    alt={arena.arenaName}
+    className="w-full h-56 object-cover"
+  />
+
+  {/* Arena Info */}
+  <div className="p-5">
+    <h2 className="text-lg font-semibold mb-2">
+      {arena.arenaName || "Unnamed Arena"}
+    </h2>
+    <div className="flex items-center text-cyan-300">
+      <Users size={18} className="mr-2" />
+      Capacity: {arena.totalCapacity ?? "N/A"}
+    </div>
+  </div>
+</motion.div>
+
+
+          ))}
         </motion.div>
       )}
     </div>

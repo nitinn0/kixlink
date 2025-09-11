@@ -23,7 +23,8 @@ const chatSchema = new mongoose.Schema({
 
 const arenaSchema = new mongoose.Schema({
     arenaName: {type: String, required:true, unique:true},
-    totalCapacity: {type: Number, required:false}
+    totalCapacity: {type: Number, required:false},
+    image_url: {type: String, default: "" },
 }, { timestamps: true }); 
 
 const teamSchema = new mongoose.Schema({

@@ -13,7 +13,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Home, Users, Trophy, Settings, Bell, Search, LogOut } from "lucide-react";
+import { Home, Users, Trophy, Settings, Bell, Search, LogOut, Building2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -77,6 +77,13 @@ const Dashboard = () => {
   className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
 >
   <Users size={22} /> Players
+</a>
+
+        <a
+  onClick={() => navigate("/")}
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
+>
+  <Building2 size={22} /> Arenas
 </a>
 
           <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
