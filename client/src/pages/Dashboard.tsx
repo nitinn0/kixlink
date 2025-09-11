@@ -69,7 +69,9 @@ const Dashboard = () => {
       <div className="w-64 glass flex flex-col p-5 text-white shadow-lg rounded-r-3xl">
         <h1 className="text-3xl font-extrabold neon-text mb-8 tracking-wide">KixLink</h1>
         <nav className="flex flex-col gap-5 text-lg font-medium">
-          <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
+          <a 
+          onClick={() => navigate("/")}
+          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
             <Home size={22} /> Dashboard
           </a>
           <a
@@ -80,7 +82,7 @@ const Dashboard = () => {
 </a>
 
         <a
-  onClick={() => navigate("/")}
+  onClick={() => navigate("/arena")}
   className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
 >
   <Building2 size={22} /> Arenas

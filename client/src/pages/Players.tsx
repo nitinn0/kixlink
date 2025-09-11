@@ -1,37 +1,47 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Building2, Users, Search } from "lucide-react";
+import { User, UserCircle2, Search, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
-type Arena = {
+type Player = {
   _id: string;
-  image_url?: string;
-  arenaName: string;
-  totalCapacity: number;
+  name: string;
+  username: string;
+  position?: string;
+  createdAt: string;
+  image_url?: string; // optional if you later add player images
 };
 
-const ArenasPage: React.FC = () => {
-  const [arenas, setArenas] = useState<Arena[]>([]);
+const PlayersPage: React.FC = () => {
+  const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchArenas = async () => {
+    const fetchPlayers = async () => {
       try {
-        const res = await axios.get<Arena[]>("http://localhost:4000/arena");
-        setArenas(res.data);
+        const token = localStorage.getItem("token");
+
+const res = await axios.get<Player[]>("http://localhost:4000/players", {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+        setPlayers(res.data);
       } catch (error) {
-        console.error("Error fetching arenas:", error);
+        console.error("Error fetching players:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArenas();
+    fetchPlayers();
   }, []);
 
-  const filteredArenas = arenas.filter((arena) =>
-    arena.arenaName.toLowerCase().includes(search.toLowerCase())
+  const filteredPlayers = players.filter(
+    (player) =>
+      player.name.toLowerCase().includes(search.toLowerCase()) ||
+      player.username.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -43,14 +53,14 @@ const ArenasPage: React.FC = () => {
         className="flex justify-between items-center mb-6"
       >
         <h1 className="text-3xl font-extrabold neon-text flex items-center gap-3">
-          <Building2 size={28} /> Arenas
+          <User size={28} /> Players
         </h1>
 
         <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
           <Search size={18} className="text-cyan-400" />
           <input
             type="text"
-            placeholder="Search arenas..."
+            placeholder="Search players..."
             className="bg-transparent outline-none text-sm text-white w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -63,9 +73,9 @@ const ArenasPage: React.FC = () => {
         <div className="flex justify-center items-center flex-1">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
         </div>
-      ) : filteredArenas.length === 0 ? (
+      ) : filteredPlayers.length === 0 ? (
         <p className="text-gray-400 text-center mt-10 text-lg">
-          No arenas found 🏟️
+          No players found ⚽
         </p>
       ) : (
         <motion.div
@@ -77,35 +87,41 @@ const ArenasPage: React.FC = () => {
             <thead>
               <tr className="border-b border-gray-700">
                 <th className="p-3">#</th>
-                <th className="p-3">Image</th>
-                <th className="p-3">Arena Name</th>
-                <th className="p-3">Capacity</th>
+                <th className="p-3">Avatar</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Username</th>
+                <th className="p-3">Position</th>
+                <th className="p-3">Joined</th>
               </tr>
             </thead>
             <tbody>
-              {filteredArenas.map((arena, index) => (
+              {filteredPlayers.map((player, index) => (
                 <motion.tr
-                  key={arena._id}
+                  key={player._id}
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="transition duration-200 ease-in-out"
                 >
-                  <td className="p-3 text-gray-300 hover:bg-white/10 rounded-md cursor-pointer">
-                    {index + 1}
-                  </td>
-                  <td className="p-3 hover:bg-white/10 rounded-md cursor-pointer">
+                  <td className="p-3 text-gray-300">{index + 1}</td>
+                  <td className="p-3">
                     <img
-                      src={arena.image_url || "https://via.placeholder.com/80"}
-                      alt={arena.arenaName}
-                      className="w-20 h-12 object-cover rounded-md"
+                      src={
+                        player.image_url ||
+                        "https://via.placeholder.com/40x40?text=P"
+                      }
+                      alt={player.name}
+                      className="w-10 h-10 object-cover rounded-full border border-cyan-400"
                     />
                   </td>
-                  <td className="p-3 font-semibold hover:bg-white/10 rounded-md cursor-pointer">
-                    {arena.arenaName}
+                  <td className="p-3 font-semibold">{player.name}</td>
+                  <td className="p-3 text-gray-300">@{player.username}</td>
+                  <td className="p-3 text-cyan-300">
+                    {player.position || "N/A"}
                   </td>
-                  <td className="p-3 flex items-center gap-2 text-cyan-300 hover:bg-white/10 rounded-md cursor-pointer">
-                    <Users size={16} /> {arena.totalCapacity ?? "N/A"}
+                  <td className="p-3 flex items-center gap-2 text-gray-400">
+                    <Calendar size={16} />{" "}
+                    {new Date(player.createdAt).toLocaleDateString()}
                   </td>
                 </motion.tr>
               ))}
@@ -117,4 +133,4 @@ const ArenasPage: React.FC = () => {
   );
 };
 
-export default ArenasPage;
+export default PlayersPage;

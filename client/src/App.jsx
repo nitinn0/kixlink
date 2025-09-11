@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Players from "./pages/Players";
 import ArenasPage from "./pages/Arenas";
+import PlayersPage from "./pages/Players";
 
 export default function App() {
   return (
@@ -11,7 +11,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/arena" element={<ArenasPage />} />
-        <Route path="/players" element={<Players />} />
+        <Route path="/players" element={<PlayersPage />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
       </Routes>

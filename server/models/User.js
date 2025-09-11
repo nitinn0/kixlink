@@ -35,6 +35,8 @@ const teamSchema = new mongoose.Schema({
 const playerSchema = new mongoose.Schema({
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
+    postion: {type: String, required:false},
+    image_url: {type: String, default: "" },
     createdAt: { type: Date, default: Date.now },
 })
 
