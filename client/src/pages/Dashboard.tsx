@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -13,17 +13,21 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Home, Users, Trophy, Settings, Bell, Search, LogOut, Building2 } from "lucide-react";
+import {
+  Home,
+  Users,
+  Trophy,
+  Settings,
+  Bell,
+  Search,
+  LogOut,
+  Building2,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const matches = [
-  { id: 1, teamA: "Red Hawks", teamB: "Blue Warriors", date: "2025-09-05", time: "4:30 PM", status: "upcoming" },
-  { id: 2, teamA: "Sky Raiders", teamB: "Golden Titans", date: "2025-09-03", time: "5:00 PM", status: "ongoing" },
-  { id: 3, teamA: "Shadow Strikers", teamB: "Iron Wolves", date: "2025-09-02", time: "6:00 PM", status: "completed" },
-  { id: 4, teamA: "Royal Rangers", teamB: "Storm Breakers", date: "2025-09-04", time: "3:00 PM", status: "upcoming" },
-];
-
+// ---- Mock Data ----
 const matchData = [
   { day: "Mon", matches: 3 },
   { day: "Tue", matches: 5 },
@@ -53,8 +57,34 @@ const COLORS = ["#00f0ff", "#ff00f7", "#9dff00", "#ffae00"];
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [playerCount, setPlayerCount] = useState<number>(0);
 
-  // ✅ Logout Function
+  // ---- Fetch Player Count ----
+  useEffect(() => {
+    const fetchPlayerCount = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:4000/players", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (Array.isArray(res.data)) {
+          setPlayerCount(res.data.length);
+        } else if (Array.isArray(res.data.players)) {
+          setPlayerCount(res.data.players.length);
+        } else {
+          setPlayerCount(0);
+        }
+      } catch (err) {
+        console.error("Error fetching player count:", err);
+        setPlayerCount(0);
+      }
+    };
+
+    fetchPlayerCount();
+  }, []);
+
+  // ---- Logout ----
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -63,38 +93,54 @@ const Dashboard = () => {
     navigate("/auth/login", { replace: true });
   };
 
+  // ---- Sidebar Links ----
+  const sidebarLinks = [
+    { label: "Dashboard", icon: <Home size={22} />, path: "/" },
+    {
+      label: "Players",
+      icon: <Users size={22} />,
+      path: "/players",
+      badge: playerCount,
+    },
+    { label: "Arenas", icon: <Building2 size={22} />, path: "/arena" },
+    { label: "Tournaments", icon: <Trophy size={22} />, path: "/tournaments" },
+    { label: "Settings", icon: <Settings size={22} />, path: "/settings" },
+  ];
+
+  // ---- Stats ----
+  const stats = [
+    { title: "Total Players", value: playerCount },
+    { title: "Upcoming Matches", value: 12 },
+    { title: "Active Tournaments", value: 3 },
+    { title: "Registered Teams", value: 45 },
+  ];
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white">
       {/* Sidebar */}
-      <div className="w-64 glass flex flex-col p-5 text-white shadow-lg rounded-r-3xl">
-        <h1 className="text-3xl font-extrabold neon-text mb-8 tracking-wide">KixLink</h1>
+      <div className="w-64 glass flex flex-col p-5 shadow-lg rounded-r-3xl">
+        <h1 className="text-3xl font-extrabold neon-text mb-8 tracking-wide">
+          KixLink
+        </h1>
+
         <nav className="flex flex-col gap-5 text-lg font-medium">
-          <a 
-          onClick={() => navigate("/")}
-          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
-            <Home size={22} /> Dashboard
-          </a>
-          <a
-  onClick={() => navigate("/players")}
-  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
->
-  <Users size={22} /> Players
-</a>
-
-        <a
-  onClick={() => navigate("/arena")}
-  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
->
-  <Building2 size={22} /> Arenas
-</a>
-
-          <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
-            <Trophy size={22} /> Tournaments
-          </a>
-          <a className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer">
-            <Settings size={22} /> Settings
-          </a>
+          {sidebarLinks.map((link, idx) => (
+            <a
+              key={idx}
+              onClick={() => navigate(link.path)}
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
+            >
+              {link.icon}
+              <span>{link.label}</span>
+              {link.badge !== undefined && (
+                <span className="ml-auto bg-cyan-600 text-white text-xs px-2 py-1 rounded-full">
+                  {link.badge}
+                </span>
+              )}
+            </a>
+          ))}
         </nav>
+
         <div className="mt-auto">
           <button
             onClick={handleLogout}
@@ -131,12 +177,7 @@ const Dashboard = () => {
         <div className="p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            {[
-              { title: "Total Players", value: "250+" },
-              { title: "Upcoming Matches", value: "12" },
-              { title: "Active Tournaments", value: "3" },
-              { title: "Registered Teams", value: "45" },
-            ].map((card, i) => (
+            {stats.map((card, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 40 }}
@@ -145,7 +186,9 @@ const Dashboard = () => {
                 className="glass neon-card p-6 rounded-2xl text-center"
               >
                 <h3 className="text-gray-200 text-md">{card.title}</h3>
-                <p className="text-3xl font-extrabold text-cyan-300 mt-2">{card.value}</p>
+                <p className="text-3xl font-extrabold text-cyan-300 mt-2">
+                  {card.value}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -154,25 +197,38 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Line Chart */}
             <div className="glass rounded-2xl p-5 neon-card">
-              <h3 className="text-xl font-semibold mb-4 neon-text">Matches Played</h3>
+              <h3 className="text-xl font-semibold mb-4 neon-text">
+                Matches Played
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={matchData}>
                   <XAxis dataKey="day" stroke="#ccc" />
                   <YAxis stroke="#ccc" />
-                  <Tooltip contentStyle={{ background: "#222", borderRadius: "10px" }} />
-                  <Line type="monotone" dataKey="matches" stroke="#00f0ff" strokeWidth={3} />
+                  <Tooltip
+                    contentStyle={{ background: "#222", borderRadius: "10px" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="matches"
+                    stroke="#00f0ff"
+                    strokeWidth={3}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Bar Chart */}
             <div className="glass rounded-2xl p-5 neon-card">
-              <h3 className="text-xl font-semibold mb-4 neon-text">Top Goal Scorers</h3>
+              <h3 className="text-xl font-semibold mb-4 neon-text">
+                Top Goal Scorers
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={topPlayers}>
                   <XAxis dataKey="name" stroke="#ccc" />
                   <YAxis stroke="#ccc" />
-                  <Tooltip contentStyle={{ background: "#222", borderRadius: "10px" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#222", borderRadius: "10px" }}
+                  />
                   <Bar dataKey="goals" fill="#ff00f7" />
                 </BarChart>
               </ResponsiveContainer>
@@ -181,12 +237,23 @@ const Dashboard = () => {
 
           {/* Pie Chart */}
           <div className="glass rounded-2xl p-5 neon-card mt-6">
-            <h3 className="text-xl font-semibold mb-4 neon-text">Player Positions</h3>
+            <h3 className="text-xl font-semibold mb-4 neon-text">
+              Player Positions
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie data={teamDistribution} dataKey="value" nameKey="name" outerRadius={120} label>
+                <Pie
+                  data={teamDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={120}
+                  label
+                >
                   {teamDistribution.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
               </PieChart>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { User, UserCircle2, Search, Calendar } from "lucide-react";
+import { User, Search, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 type Player = {
   _id: string;
@@ -9,24 +10,35 @@ type Player = {
   username: string;
   position?: string;
   createdAt: string;
-  image_url?: string; // optional if you later add player images
+  image_url?: string;
 };
 
 const PlayersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  // ✅ Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/auth/login");
+    }
+  }, [navigate]);
+
+  // ✅ Fetch players
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) return; // avoid request if not logged in
 
-const res = await axios.get<Player[]>("http://localhost:4000/players", {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+        const res = await axios.get<Player[]>("http://localhost:4000/players", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setPlayers(res.data);
       } catch (error) {
         console.error("Error fetching players:", error);
@@ -52,7 +64,7 @@ const res = await axios.get<Player[]>("http://localhost:4000/players", {
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-between items-center mb-6"
       >
-        <h1 className="text-3xl font-extrabold neon-text flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold flex items-center gap-3">
           <User size={28} /> Players
         </h1>
 
@@ -68,7 +80,7 @@ const res = await axios.get<Player[]>("http://localhost:4000/players", {
         </div>
       </motion.div>
 
-      {/* Loading State */}
+      {/* Loading / Empty / Table */}
       {loading ? (
         <div className="flex justify-center items-center flex-1">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
@@ -81,7 +93,7 @@ const res = await axios.get<Player[]>("http://localhost:4000/players", {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="glass neon-card rounded-xl mt-10 p-10 shadow-lg overflow-x-auto"
+          className="glass rounded-xl mt-10 p-10 shadow-lg overflow-x-auto"
         >
           <table className="w-full text-left border-collapse">
             <thead>
