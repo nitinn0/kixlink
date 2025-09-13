@@ -58,12 +58,26 @@ const COLORS = ["#00f0ff", "#ff00f7", "#9dff00", "#ffae00"];
 const Dashboard = () => {
   const navigate = useNavigate();
   const [playerCount, setPlayerCount] = useState<number>(0);
+  const [matchCount, setMatchCount] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
 
-  // ---- Fetch Player Count ----
+  // ---- Auth check ----
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/auth/login", { replace: true });
+    } else {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  // ---- Fetch Counts ----
   useEffect(() => {
     const fetchPlayerCount = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) return;
+
         const res = await axios.get("http://localhost:4000/players", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -81,8 +95,32 @@ const Dashboard = () => {
       }
     };
 
+    const fetchMatchesCount = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await axios.get("http://localhost:4000/match/matches", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (Array.isArray(res.data)) {
+      setMatchCount(res.data.length);
+    } else {
+      setMatchCount(0);
+    }
+  } catch (err) {
+    console.error("Error fetching matches:", err);
+    setMatchCount(0);
+  }
+};
+
+
     fetchPlayerCount();
+    fetchMatchesCount();
   }, []);
+
+  if (loading) return null;
 
   // ---- Logout ----
   const handleLogout = () => {
@@ -109,8 +147,8 @@ const Dashboard = () => {
 
   // ---- Stats ----
   const stats = [
-    { title: "Total Players", value: playerCount },
-    { title: "Upcoming Matches", value: 12 },
+    { title: "Total Players", value: playerCount, path: "/players" },
+    { title: "Upcoming Matches", value: matchCount, path: "/matches" },
     { title: "Active Tournaments", value: 3 },
     { title: "Registered Teams", value: 45 },
   ];
@@ -142,12 +180,14 @@ const Dashboard = () => {
         </nav>
 
         <div className="mt-auto">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 text-red-400 hover:text-red-500 transition"
-          >
-            <LogOut size={20} /> Logout
-          </button>
+          {localStorage.getItem("token") ? (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 text-red-400 hover:text-red-500 transition"
+            >
+              <LogOut size={20} /> Logout
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -183,7 +223,8 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.2 }}
-                className="glass neon-card p-6 rounded-2xl text-center"
+                className="glass neon-card p-6 rounded-2xl text-center cursor-pointer"
+                onClick={() => card.path && navigate(card.path)}
               >
                 <h3 className="text-gray-200 text-md">{card.title}</h3>
                 <p className="text-3xl font-extrabold text-cyan-300 mt-2">
