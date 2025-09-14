@@ -3,13 +3,28 @@ const router = express.Router();
 const { matchModel, chatModel } = require('../models/User');
 const verifyToken = require('../middlewares/verifyToken');
 
+
 router.get('/matches', verifyToken, async (req, res) => {
     try {
-        const matches = await matchModel.find({ date: { $gte: new Date() } });
+        console.log('Fetching matches...'); // Debug log
+        
+        // Get current date and set time to start of day for better filtering
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        
+        console.log('Filtering from date:', today); // Debug log
+        
+        // Find matches from today onwards
+        const matches = await matchModel.find({ 
+            date: { $gte: today } 
+        }).sort({ date: 1, time: 1 }); // Sort by date and time
+        
+        console.log('Found matches:', matches.length); // Debug log
+        
         res.status(200).json(matches);
     } catch (error) {
+        console.error('GET Error:', error); // Better error logging
         res.status(500).json({ error: "Server Error while fetching matches" });
-        console.log(error);
     }
 });
 

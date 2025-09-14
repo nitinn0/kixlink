@@ -23,15 +23,51 @@ router.post('/newAdmin', async(req, res) => {
 
 router.post('/addMatch', verifyAdmin, async(req, res) => {
     try{
-        const { sport, venue, time} = req.body; 
-        if(!sport || !venue || !time){
-            return res.status(401).json({error: "All fields req.."});
+        const { venue, time, date } = req.body; 
+        
+        if(!venue || !time || !date){
+            return res.status(400).json({error: "All fields required: venue, time, and date"});
         }
-        const newMatch = new matchModel({sport, venue, time});
+        
+        const matchDate = new Date(date);
+        if (isNaN(matchDate.getTime())) {
+            return res.status(400).json({ 
+                error: "Invalid date format. Use YYYY-MM-DD or MM/DD/YYYY" 
+            });
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (matchDate < today) {
+            return res.status(400).json({ 
+                error: "Cannot create match for past dates" 
+            });
+        }
+        
+        const newMatch = new matchModel({
+            venue: venue.trim(), 
+            time: time.trim(),
+            date: matchDate,
+            players: [] // Initialize empty players array
+        });
+        
         await newMatch.save();
-        res.status(200).json({message:"Match Listed Successfully"});
+        res.status(201).json({message: "Match Listed Successfully", match: newMatch});
+        
     } catch(error){
-        res.status(500).json({error: "Server Error!"})
+        console.error('Add Match Error:', error);
+        
+        // Handle mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ 
+                error: "Validation Error", 
+                details: errors 
+            });
+        }
+        
+        res.status(500).json({error: "Server Error while adding match"});
     }
 });
 

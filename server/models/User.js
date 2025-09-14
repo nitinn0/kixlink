@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
 const matchSchema = new mongoose.Schema({
     venue: {type: String, required:true},
     time: {type: String, required:true},
+    date: {type: Date, required: true}, 
     players: { type: [String], default: [] }
 });
 
