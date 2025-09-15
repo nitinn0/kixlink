@@ -6,13 +6,15 @@ const verifyToken = require('../middlewares/verifyToken');
 
 router.get('/matches', verifyToken, async (req, res) => {
     try {
-        console.log('Fetching matches...'); // Debug log
+        console.log('Fetching matches...'); 
         
-        // Get current date and set time to start of day for better filtering
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of today
-        
-        console.log('Filtering from date:', today); // Debug log
+      const today = new Date();
+today.setHours(0, 0, 0, 0); // Start of today
+
+console.log('Filtering from date:', today);
+
+// Delete expired matches (past dates)
+await matchModel.deleteMany({ date: { $lt: today } });
         
         // Find matches from today onwards
         const matches = await matchModel.find({ 
@@ -39,6 +41,34 @@ router.get('/matches/:id', verifyToken, async(req, res) => {
         res.status(500).json({ error: "No match listed" });
     }
 });
+
+
+// Exit a match
+router.post('/exitMatch/:Matchid', verifyToken, async (req, res) => {
+    try {
+        const { Matchid } = req.params;
+        const { playerName } = req.body;
+
+        if (!playerName) {
+            return res.status(400).json({ error: "Player name is required." });
+        }
+
+        const match = await matchModel.findById(Matchid);
+        if (!match) {
+            return res.status(404).json({ error: "Match not found" });
+        }
+
+        // Remove player from match
+        match.players = match.players.filter(p => p !== playerName);
+        await match.save();
+
+        res.status(200).json({ message: "Player removed from match successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error while exiting match" });
+    }
+});
+
 
 router.post('/joinMatch/:Matchid', verifyToken, async(req, res) => {
     try {

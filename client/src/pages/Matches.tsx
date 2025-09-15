@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Calendar, MapPin, Users, Clock, Eye, LogIn } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Eye, LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -18,21 +18,22 @@ const MatchesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); // For View Players modal
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [userJoinedMatchId, setUserJoinedMatchId] = useState<string | null>(null);
+
+  const username = localStorage.getItem("username");
+  const token = localStorage.getItem("token");
 
   // ✅ Check login
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) navigate("/auth/login");
-  }, [navigate]);
+  }, [navigate, token]);
 
-  // ✅ Fetch matches
+  // ✅ Fetch matches and determine if user has joined one
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const token = localStorage.getItem("token");
         if (!token) return;
-
         const res = await axios.get("http://localhost:4000/match/matches", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -44,6 +45,10 @@ const MatchesPage: React.FC = () => {
           : [];
 
         setMatches(data);
+
+        // Check if user has already joined a match
+        const joined = data.find((m) => username && m.players.includes(username));
+        setUserJoinedMatchId(joined?._id || null);
         setError("");
       } catch (err) {
         console.error("Error fetching matches:", err);
@@ -54,43 +59,71 @@ const MatchesPage: React.FC = () => {
     };
 
     fetchMatches();
-  }, []);
+  }, [token, username]);
 
   // ✅ Join Match handler
+  const handleJoinMatch = async (matchId: string) => {
+    if (!token || !username) return;
 
-const handleJoinMatch = async (matchId: string) => {
- try {
-    const token = localStorage.getItem("token");
-    const playerName = localStorage.getItem("username");
-
-    if (!token || !playerName) {
-      console.error("No token or username found");
+    if (userJoinedMatchId) {
+      alert("You can only join one match at a time!");
       return;
     }
 
-    const res = await axios.post(
-      `http://localhost:4000/match/joinMatch/${matchId}`, 
-      { playerName },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const res = await axios.post(
+        `http://localhost:4000/match/joinMatch/${matchId}`,
+        { playerName: username },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    console.log("Joined match:", res.data);
-  } catch (error) {
-    console.error("Error joining match:", error);
-  }
-};
+      console.log("Joined match:", res.data);
 
+      // Update state locally
+      setMatches((prev) =>
+        prev.map((m) =>
+          m._id === matchId ? { ...m, players: [...m.players, username] } : m
+        )
+      );
+      setUserJoinedMatchId(matchId);
+    } catch (err) {
+      console.error("Error joining match:", err);
+      alert("Failed to join match");
+    }
+  };
 
+  // ✅ Exit Match handler
+  const handleExitMatch = async (matchId: string) => {
+    if (!token || !username) return;
+
+    try {
+      const res = await axios.post(
+        `http://localhost:4000/match/exitMatch/${matchId}`,
+        { playerName: username },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Exited match:", res.data);
+
+      setMatches((prev) =>
+        prev.map((m) =>
+          m._id === matchId
+            ? { ...m, players: m.players.filter((p) => p !== username) }
+            : m
+        )
+      );
+      setUserJoinedMatchId(null);
+    } catch (err) {
+      console.error("Error exiting match:", err);
+      alert("Failed to exit match");
+    }
+  };
+
+  // Filter matches
   const filteredMatches = matches.filter(
     (match) =>
       match.venue.toLowerCase().includes(search.toLowerCase()) ||
-      match.players.some((p) =>
-        p.toLowerCase().includes(search.toLowerCase())
-      )
+      match.players.some((p) => p.toLowerCase().includes(search.toLowerCase()))
   );
 
   const formatDate = (dateString: string) => {
@@ -172,58 +205,73 @@ const handleJoinMatch = async (matchId: string) => {
               </tr>
             </thead>
             <tbody>
-  {filteredMatches.map((match, index) => (
-    <motion.tr
-      key={match._id}
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="border-b border-gray-700/30 hover:bg-white/5 transition-colors duration-200"
-    >
-      <td className="p-4 text-gray-400">{index + 1}</td>
-      <td className="p-4">
-        <div className="flex items-center gap-2">
-          <MapPin size={16} className="text-emerald-400" />
-          <span className="text-white font-medium">{match.venue}</span>
-        </div>
-      </td>
-      <td className="p-4">
-        <div className="flex items-center gap-2">
-          <Calendar size={16} className="text-blue-400" />
-          <span className="text-gray-200">{formatDate(match.date)}</span>
-        </div>
-      </td>
-      <td className="p-4">
-        <div className="flex items-center gap-2">
-          <Clock size={16} className="text-purple-400" />
-          <span className="text-gray-200">{match.time}</span>
-        </div>
-      </td>
-      <td className="p-4">
-        <div className="flex items-center gap-2">
-          <Users size={16} className="text-cyan-400" />
-          <span className="text-cyan-300">{match.players.length}</span>
-        </div>
-      </td>
-      <td className="p-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleJoinMatch(match._id)}
-            className="bg-cyan-600 hover:bg-cyan-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
-          >
-            <LogIn size={14} /> Join
-          </button>
-          <button
-            onClick={() => setSelectedMatch(match)}
-            className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
-          >
-            <Eye size={14} /> View
-          </button>
-        </div>
-      </td>
-    </motion.tr>
-  ))}
-</tbody>
+              {filteredMatches.map((match, index) => {
+                const userInThisMatch = username && match.players.includes(username);
+                return (
+                  <motion.tr
+                    key={match._id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border-b border-gray-700/30 hover:bg-white/5 transition-colors duration-200"
+                  >
+                    <td className="p-4 text-gray-400">{index + 1}</td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-emerald-400" />
+                        <span className="text-white font-medium">{match.venue}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-blue-400" />
+                        <span className="text-gray-200">{formatDate(match.date)}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-purple-400" />
+                        <span className="text-gray-200">{match.time}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Users size={16} className="text-cyan-400" />
+                        <span className="text-cyan-300">{match.players.length}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        {!userInThisMatch ? (
+                          <button
+                            onClick={() => handleJoinMatch(match._id)}
+                            disabled={!!userJoinedMatchId}
+                            title={userJoinedMatchId ? "You can only join one match at a time" : ""}
+                            className="bg-cyan-600 hover:bg-cyan-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm disabled:opacity-50"
+                          >
+                            <LogIn size={14} /> Join
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleExitMatch(match._id)}
+                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
+                          >
+                            <LogOut size={14} /> Exit
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => setSelectedMatch(match)}
+                          className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
+                        >
+                          <Eye size={14} /> View
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
           </table>
         </motion.div>
       )}
