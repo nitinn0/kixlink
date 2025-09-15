@@ -6,12 +6,10 @@ const verifyToken = require('../middlewares/verifyToken');
 
 router.get('/matches', verifyToken, async (req, res) => {
     try {
-        console.log('Fetching matches...'); 
         
       const today = new Date();
 today.setHours(0, 0, 0, 0); // Start of today
 
-console.log('Filtering from date:', today);
 
 // Delete expired matches (past dates)
 await matchModel.deleteMany({ date: { $lt: today } });
@@ -21,7 +19,6 @@ await matchModel.deleteMany({ date: { $lt: today } });
             date: { $gte: today } 
         }).sort({ date: 1, time: 1 }); // Sort by date and time
         
-        console.log('Found matches:', matches.length); // Debug log
         
         res.status(200).json(matches);
     } catch (error) {
@@ -68,7 +65,6 @@ router.post('/exitMatch/:Matchid', verifyToken, async (req, res) => {
         res.status(500).json({ error: "Server error while exiting match" });
     }
 });
-
 
 router.post('/joinMatch/:Matchid', verifyToken, async(req, res) => {
     try {
