@@ -40,9 +40,9 @@ router.get('/matches/:id', verifyToken, async(req, res) => {
     }
 });
 
-router.post('/joinMatch/:Matchid/:venue', verifyToken, async(req, res) => {
+router.post('/joinMatch/:Matchid', verifyToken, async(req, res) => {
     try {
-        const {Matchid, venue} = req.params;
+        const {Matchid} = req.params;
         const {playerName} = req.body;
 
         if (!playerName) {

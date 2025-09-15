@@ -27,6 +27,8 @@ const handleSubmit = async (e) => {
     // ✅ Save the token properly
     localStorage.setItem("token", res.data.token);
     console.log("Token saved:", res.data.token);
+    localStorage.setItem("username", res.data.user.username); 
+localStorage.setItem("name", res.data.user.name);
 
     if (res.data.success) {
       navigate("/");
