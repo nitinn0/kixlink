@@ -26,6 +26,7 @@ import {
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import EditProfile from "./EditProfile";
 
 // ---- Mock Data ----
 const matchData = [
@@ -205,11 +206,13 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-6">
             <Bell size={24} className="text-pink-400 cursor-pointer" />
-            <img
-              src="https://i.pravatar.cc/40"
-              alt="profile"
-              className="w-12 h-12 rounded-full border-2 border-cyan-400"
-            />
+<img
+  src="https://i.pravatar.cc/40"
+  alt="profile"
+  onClick={() => navigate("/edit-profile")}
+  className="w-12 h-12 rounded-full border-2 border-cyan-400 cursor-pointer"
+/>
+
           </div>
         </div>
 
