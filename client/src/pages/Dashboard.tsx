@@ -159,7 +159,7 @@ const Dashboard = () => {
       if (!token || !user?._id) return;
 
       const res = await axios.put(
-        "http://localhost:4000/users/update",
+        "http://localhost:4000/update",
         { id: user._id, ...formData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
