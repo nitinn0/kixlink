@@ -349,67 +349,66 @@ const Dashboard = () => {
         </div>
       </div>
 
-    {/* Profile Edit Modal */}
-{showModal && (
-  <motion.div
-    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-  >
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      className="glass neon-card p-6 rounded-2xl w-96 text-white shadow-xl"
-    >
-      <h2 className="text-2xl font-extrabold neon-text mb-4 text-center">
-        Edit Profile
-      </h2>
-
-      <div className="flex flex-col gap-3">
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          placeholder="Name"
-          className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
-        />
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="Email"
-          className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
-        />
-        <input
-          type="text"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-          placeholder="Phone"
-          className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
-        />
-      </div>
-
-      <div className="flex justify-end gap-3 mt-6">
-        <button
-          onClick={() => setShowModal(false)}
-          className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-gray-300"
+      {/* Profile Edit Modal */}
+      {showModal && (
+        <motion.div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
         >
-          Cancel
-        </button>
-        <button
-          onClick={handleUpdateProfile}
-          className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 transition text-white font-semibold shadow-md"
-        >
-          Save
-        </button>
-      </div>
-    </motion.div>
-  </motion.div>
-)}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="glass neon-card p-6 rounded-2xl w-96 text-white shadow-xl"
+          >
+            <h2 className="text-2xl font-extrabold neon-text mb-4 text-center">
+              Edit Profile
+            </h2>
 
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Name"
+                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Email"
+                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+              />
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Phone"
+                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateProfile}
+                className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 transition text-white font-semibold shadow-md"
+              >
+                Save
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };

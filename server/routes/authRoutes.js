@@ -4,6 +4,7 @@ const { userModel } = require("../models/User");
 const { playerModel } = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const verifyToken = require("../middlewares/verifyToken");
 
 // User Registration
 router.post("/register", async (req, res) => {
@@ -101,12 +102,56 @@ router.post("/login", async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: { name: user.name, email: user.email, username: user.username, isAdmin:user.isAdmin }
+      user: { 
+        id: user._id, 
+        name: user.name, email: user.email, username: user.username, isAdmin:user.isAdmin }
     });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Login failed" });
   }
 });
+
+// Get user by ID
+router.get("/:id", verifyToken, async (req, res) => {
+  try {
+    if (req.user.id !== req.params.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    const user = await userModel.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Update user profile
+router.put("/:id", verifyToken, async (req, res) => {
+  try {
+    if (req.user.id !== req.params.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    const { name, email, username } = req.body;
+
+    const updatedUser = await userModel
+      .findByIdAndUpdate(
+        req.params.id,
+        { name, email, username },
+        { new: true }
+      )
+      .select("-password");
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 
 module.exports = router;
