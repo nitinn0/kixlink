@@ -40,5 +40,31 @@ router.get('/arena', async (req, res) => {
   }
 });
 
+router.put("/update", verifyToken, async (req, res) => {
+  try {
+    const { id, ...updates } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "User ID required" });
+    }
+
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true } // return updated user
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("❌ Update error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 
 module.exports = router;
