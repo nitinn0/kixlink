@@ -60,13 +60,31 @@ const Dashboard = () => {
   const [playerCount, setPlayerCount] = useState<number>(0);
   const [matchCount, setMatchCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
 
   // ---- Auth check ----
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
     if (!token) {
       navigate("/auth/login", { replace: true });
     } else {
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setFormData({
+          name: parsed.name || "",
+          email: parsed.email || "",
+          phone: parsed.phone || "",
+        });
+      }
       setLoading(false);
     }
   }, [navigate]);
@@ -96,25 +114,24 @@ const Dashboard = () => {
     };
 
     const fetchMatchesCount = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-    const res = await axios.get("http://localhost:4000/match/matches", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        const res = await axios.get("http://localhost:4000/match/matches", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-    if (Array.isArray(res.data)) {
-      setMatchCount(res.data.length);
-    } else {
-      setMatchCount(0);
-    }
-  } catch (err) {
-    console.error("Error fetching matches:", err);
-    setMatchCount(0);
-  }
-};
-
+        if (Array.isArray(res.data)) {
+          setMatchCount(res.data.length);
+        } else {
+          setMatchCount(0);
+        }
+      } catch (err) {
+        console.error("Error fetching matches:", err);
+        setMatchCount(0);
+      }
+    };
 
     fetchPlayerCount();
     fetchMatchesCount();
@@ -129,6 +146,34 @@ const Dashboard = () => {
     sessionStorage.clear();
     toast.success("Logged out successfully!");
     navigate("/auth/login", { replace: true });
+  };
+
+  // ---- Update Profile ----
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token || !user?._id) return;
+
+      const res = await axios.put(
+        "http://localhost:4000/users/update",
+        { id: user._id, ...formData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        toast.success("Profile updated!");
+        setShowModal(false);
+      }
+    } catch (err) {
+      console.error("❌ Error updating profile:", err);
+      toast.error("Failed to update profile");
+    }
   };
 
   // ---- Sidebar Links ----
@@ -208,7 +253,8 @@ const Dashboard = () => {
             <img
               src="https://i.pravatar.cc/40"
               alt="profile"
-              className="w-12 h-12 rounded-full border-2 border-cyan-400"
+              className="w-12 h-12 rounded-full border-2 border-cyan-400 cursor-pointer"
+              onClick={() => setShowModal(true)}
             />
           </div>
         </div>
@@ -302,6 +348,59 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {showModal && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="bg-white text-black p-6 rounded-2xl w-96">
+            <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Name"
+              className="w-full mb-3 p-2 border rounded"
+            />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Email"
+              className="w-full mb-3 p-2 border rounded"
+            />
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder="Phone"
+              className="w-full mb-3 p-2 border rounded"
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateProfile}
+                className="px-4 py-2 bg-cyan-500 text-white rounded"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
