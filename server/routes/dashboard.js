@@ -40,18 +40,13 @@ router.get('/arena', async (req, res) => {
   }
 });
 
-router.put("/update", verifyToken, async (req, res) => {
+router.put("/users/update", verifyToken, async (req, res) => {
   try {
-    const { id, ...updates } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: "User ID required" });
-    }
-
+    const { id, name, username, email } = req.body;
     const user = await userModel.findByIdAndUpdate(
       id,
-      { $set: updates },
-      { new: true } // return updated user
+      { name, username, email},
+      { new: true }
     );
 
     if (!user) {
@@ -60,7 +55,7 @@ router.put("/update", verifyToken, async (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error("❌ Update error:", err);
+    console.error("Update error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });

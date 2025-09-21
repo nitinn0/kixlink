@@ -66,7 +66,7 @@ const Dashboard = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    username: "",
   });
 
   // ---- Auth check ----
@@ -82,7 +82,7 @@ const Dashboard = () => {
         setFormData({
           name: parsed.name || "",
           email: parsed.email || "",
-          phone: parsed.phone || "",
+          username: parsed.username || "",
         });
       }
       setLoading(false);
@@ -154,15 +154,19 @@ const Dashboard = () => {
   };
 
   const handleUpdateProfile = async () => {
+     console.log("✅ Save clicked"); // debug
     try {
       const token = localStorage.getItem("token");
       if (!token || !user?._id) return;
 
-      const res = await axios.put(
-        "http://localhost:4000/update",
-        { id: user._id, ...formData },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+   const res = await axios.put(
+  "http://localhost:4000/users/update",
+  { id: user._id, name: formData.name, email: formData.email, username: formData.username },
+  { headers: { Authorization: `Bearer ${token}` } }
+);
+console.log("📤 Sending:", { id: user._id, ...formData });
+
+
 
       if (res.data.success) {
         setUser(res.data.user);
@@ -250,12 +254,15 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-6">
             <Bell size={24} className="text-pink-400 cursor-pointer" />
-            <img
-              src="https://i.pravatar.cc/40"
-              alt="profile"
-              className="w-12 h-12 rounded-full border-2 border-cyan-400 cursor-pointer"
-              onClick={() => setShowModal(true)}
-            />
+<img
+  src="https://i.pravatar.cc/40"
+  alt="profile"
+  className="w-12 h-12 rounded-full border-2 border-cyan-400 cursor-pointer"
+  onClick={() => {
+    console.log("Avatar clicked ✅");
+    setShowModal(true);
+  }}
+/>
           </div>
         </div>
 
@@ -351,19 +358,19 @@ const Dashboard = () => {
 
       {/* Profile Edit Modal */}
       {showModal && (
-        <motion.div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="glass neon-card p-6 rounded-2xl w-96 text-white shadow-xl"
-          >
-            <h2 className="text-2xl font-extrabold neon-text mb-4 text-center">
-              Edit Profile
-            </h2>
+  <motion.div
+    className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.2 }}
+  >
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      className="glass neon-card p-6 rounded-2xl w-96 text-white shadow-xl"
+    >
+      <h2>Edit Profile</h2>
 
             <div className="flex flex-col gap-3">
               <input
@@ -375,6 +382,14 @@ const Dashboard = () => {
                 className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
               />
               <input
+  type="text"
+  name="username"
+  value={formData.username}
+  onChange={handleInputChange}
+  placeholder="Username"
+  className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+/>
+              <input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -382,14 +397,7 @@ const Dashboard = () => {
                 placeholder="Email"
                 className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
               />
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Phone"
-                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
-              />
+              
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
