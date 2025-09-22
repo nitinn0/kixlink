@@ -16,6 +16,7 @@ import {
 import {
   Home,
   Users,
+  Text,
   Trophy,
   Settings,
   Bell,
@@ -191,7 +192,9 @@ console.log("📤 Sending:", { id: user._id, ...formData });
     },
     { label: "Arenas", icon: <Building2 size={22} />, path: "/arena" },
     { label: "Tournaments", icon: <Trophy size={22} />, path: "/tournaments" },
+    { label: "Chat", icon: <Text size={22} />, path: "/chat" },
     { label: "Settings", icon: <Settings size={22} />, path: "/settings" },
+
   ];
 
   // ---- Stats ----

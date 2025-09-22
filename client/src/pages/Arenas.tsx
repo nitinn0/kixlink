@@ -78,6 +78,7 @@ const ArenasPage: React.FC = () => {
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.05 }}
   className="glass neon-card rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] transition w-[300px] mx-auto"
+  onClick={() => window.location.href = `/arena/${arena._id}`} 
 >
   {/* Arena Image */}
   <img

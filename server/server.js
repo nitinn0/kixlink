@@ -7,7 +7,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const connectDB = require('./config/db');
 const teamManagement = require('./routes/teamManagement');
 const cors = require('cors');
-const dashboardRoutes = require('./routes/dashboard');
+const dashboard = require('./routes/dashboard');
 const cron = require("node-cron");  // ✅ require instead of import
 const matchModel = require("../server/models/User")
 
@@ -22,7 +22,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use('/', dashboardRoutes);
+app.use('/', dashboard);
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/match', matchRoutes);

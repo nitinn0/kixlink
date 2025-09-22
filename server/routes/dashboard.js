@@ -40,7 +40,8 @@ router.get('/arena', async (req, res) => {
   }
 });
 
-router.put("/users/update", verifyToken, async (req, res) => {
+router.put("/users/update", async (req, res) => {
+  console.log("📥 /users/update hit with body:", req.body);
   try {
     const { id, name, username, email } = req.body;
     const user = await userModel.findByIdAndUpdate(
@@ -59,7 +60,5 @@ router.put("/users/update", verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-
 
 module.exports = router;
