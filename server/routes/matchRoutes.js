@@ -89,21 +89,28 @@ router.post('/joinMatch/:Matchid', verifyToken, async(req, res) => {
     }
 });
 
-router.post('/find-players', verifyToken, async (req, res) => {
-    try {
-        const { message } = req.body;
-        
-        const chatMessage = new chatModel({
-            message,
-            sender: req.user.userId,
-            timestamp: new Date()
-        });
-        await chatMessage.save();      
-        res.status(200).json({ message: "Message sent successfully"});
-    } catch (error) {
-        res.status(500).json({ error: "Server Error while sending message" });
+router.post("/find-players", verifyToken, async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: "Message cannot be empty" });
     }
+
+    const chatMessage = new chatModel({
+      message,
+      sender: req.user.userId, // comes from verifyToken middleware
+    });
+
+    await chatMessage.save();
+
+    res.status(200).json(chatMessage); // return the saved msg
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).json({ error: "Server Error while sending message" });
+  }
 });
+
 
 router.get('/find-players', verifyToken, async (req, res) => {
     try {

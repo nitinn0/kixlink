@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { Send, Users } from "lucide-react";
@@ -12,72 +13,62 @@ type Message = {
     username: string;
     image_url?: string;
   };
-  text: string;
-  createdAt: string;
+  message: string;
+  timestamp: string;
 };
+
+const socket = io("http://localhost:4000"); // backend server
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  // ✅ Check login
+  // ✅ Load chat history
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/auth/login");
+      return;
     }
-  }, [navigate]);
 
-  // ✅ Fetch messages
-  useEffect(() => {
     const fetchMessages = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const res = await axios.get<Message[]>(
-          "http://localhost:4000/chat/public",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setMessages(res.data);
-      } catch (err) {
-        console.error("Error fetching messages:", err);
-      } finally {
-        setLoading(false);
-      }
+      const res = await axios.get<Message[]>("http://localhost:4000/match/find-players", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(res.data);
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 5000); // 🔄 simple polling (replace with websockets later)
-    return () => clearInterval(interval);
+  }, [navigate]);
+
+  // ✅ Listen for new real-time messages
+  useEffect(() => {
+    socket.on("receiveMessage", (msg: Message) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+    };
   }, []);
 
   // ✅ Send message
-  const sendMessage = async () => {
-    if (!newMessage.trim()) return;
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  const sendMessage = () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId"); // ⚡ store this at login
+    if (!newMessage.trim() || !token || !userId) return;
 
-      const res = await axios.post<Message>(
-        "http://localhost:4000/chat/public",
-        { text: newMessage },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMessages((prev) => [...prev, res.data]);
-      setNewMessage("");
-    } catch (err) {
-      console.error("Error sending message:", err);
-    }
+    socket.emit("sendMessage", {
+      message: newMessage,
+      userId,
+    });
+
+    setNewMessage("");
   };
 
   return (
     <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
-      {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -25 }}
         animate={{ opacity: 1, y: 0 }}
@@ -87,56 +78,43 @@ const ChatPage: React.FC = () => {
         <h1 className="text-3xl font-extrabold">Public Chat</h1>
       </motion.div>
 
-      {/* Chat messages */}
+      {/* Chat window */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="glass flex-1 rounded-xl p-6 overflow-y-auto space-y-4"
       >
-        {loading ? (
-          <div className="flex justify-center items-center flex-1">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-cyan-400"></div>
-          </div>
-        ) : messages.length === 0 ? (
-          <p className="text-gray-400 text-center">No messages yet 💬</p>
-        ) : (
-          messages.map((msg, idx) => (
-            <motion.div
-              key={msg._id || idx}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.03 }}
-              className="flex gap-3"
-            >
-              <img
-                src={
-                  msg.sender.image_url ||
-                  "https://via.placeholder.com/40x40?text=U"
-                }
-                alt={msg.sender.name}
-                className="w-10 h-10 rounded-full border border-cyan-400 object-cover"
-              />
-              <div>
-                <p className="font-semibold text-cyan-300">
-                  {msg.sender.name}{" "}
-                  <span className="text-gray-400 text-sm">
-                    @{msg.sender.username}
-                  </span>
-                </p>
-                <p className="text-white/90">{msg.text}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </motion.div>
-          ))
-        )}
+        {messages.map((msg, idx) => (
+          <motion.div
+            key={msg._id || idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.02 }}
+            className="flex gap-3"
+          >
+            <img
+              src={msg.sender?.image_url || "https://via.placeholder.com/40x40?text=U"}
+              alt={msg.sender?.name}
+              className="w-10 h-10 rounded-full border border-cyan-400 object-cover"
+            />
+            <div>
+              <p className="font-semibold text-cyan-300">
+                {msg.sender?.name}{" "}
+                <span className="text-gray-400 text-sm">@{msg.sender?.username}</span>
+              </p>
+              <p className="text-white/90">{msg.message}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(msg.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+          </motion.div>
+        ))}
       </motion.div>
 
-      {/* Input bar */}
+      {/* Input */}
       <div className="mt-4 flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl">
         <input
           type="text"

@@ -31,6 +31,42 @@ app.use('/dashboard', profileRoutes);
 
 connectDB();
 
+// ✅ Create HTTP + Socket server
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // your frontend URL
+    methods: ["GET", "POST"],
+  },
+});
+
+// ✅ Socket.IO real-time connection
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Receive message from frontend
+  socket.on("sendMessage", async ({ message, userId }) => {
+    try {
+      const chatMessage = new chatModel({
+        message,
+        sender: userId,
+      });
+      await chatMessage.save();
+
+      const populatedMsg = await chatMessage.populate("sender", "name username image_url");
+
+      // Broadcast message to all connected clients
+      io.emit("receiveMessage", populatedMsg);
+    } catch (err) {
+      console.error("Error saving message:", err);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
 const PORT = 4000;
 app.listen(PORT, () => {
     console.log(`Server running on ${PORT}`);
