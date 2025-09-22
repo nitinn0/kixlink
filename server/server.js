@@ -10,7 +10,8 @@ const cors = require('cors');
 const dashboard = require('./routes/dashboard');
 const cron = require("node-cron");  // ✅ require instead of import
 const matchModel = require("../server/models/User")
-
+const http = require("http");
+const { Server } = require("socket.io");
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -67,9 +68,10 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = 4000;
-app.listen(PORT, () => {
-    console.log(`Server running on ${PORT}`);
+const PORT = process.env.PORT || 4000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
 
 cron.schedule("0 0 * * *", async () => {

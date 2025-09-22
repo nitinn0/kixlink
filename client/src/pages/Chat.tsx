@@ -17,7 +17,11 @@ type Message = {
   timestamp: string;
 };
 
-const socket = io("http://localhost:4000"); // backend server
+// ✅ Attach token to socket handshake (optional if backend requires)
+const token = localStorage.getItem("token");
+const socket = io("http://localhost:4000", {
+  auth: { token },
+});
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,17 +30,23 @@ const ChatPage: React.FC = () => {
 
   // ✅ Load chat history
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
       navigate("/auth/login");
       return;
     }
 
     const fetchMessages = async () => {
-      const res = await axios.get<Message[]>("http://localhost:4000/match/find-players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages(res.data);
+      try {
+        const res = await axios.get<Message[]>(
+          "http://localhost:4000/match/find-players",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setMessages(res.data.reverse()); // oldest → newest order
+      } catch (err) {
+        console.error("Failed to fetch chat history:", err);
+      }
     };
 
     fetchMessages();
@@ -55,8 +65,7 @@ const ChatPage: React.FC = () => {
 
   // ✅ Send message
   const sendMessage = () => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId"); // ⚡ store this at login
+    const userId = localStorage.getItem("userId");
     if (!newMessage.trim() || !token || !userId) return;
 
     socket.emit("sendMessage", {
@@ -93,14 +102,19 @@ const ChatPage: React.FC = () => {
             className="flex gap-3"
           >
             <img
-              src={msg.sender?.image_url || "https://via.placeholder.com/40x40?text=U"}
+              src={
+                msg.sender?.image_url ||
+                `https://placehold.co/40x40?text=${msg.sender?.name?.[0] || "U"}`
+              }
               alt={msg.sender?.name}
               className="w-10 h-10 rounded-full border border-cyan-400 object-cover"
             />
             <div>
               <p className="font-semibold text-cyan-300">
                 {msg.sender?.name}{" "}
-                <span className="text-gray-400 text-sm">@{msg.sender?.username}</span>
+                <span className="text-gray-400 text-sm">
+                  @{msg.sender?.username}
+                </span>
               </p>
               <p className="text-white/90">{msg.message}</p>
               <p className="text-xs text-gray-500 mt-1">
