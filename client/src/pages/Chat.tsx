@@ -4,6 +4,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { Send, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { MessageBubble } from "../pages/MessageBubble";
 
 type Message = {
   _id: string;
@@ -17,7 +18,7 @@ type Message = {
   timestamp: string;
 };
 
-// ✅ Attach token to socket handshake (optional if backend requires)
+// ✅ Attach token to socket handshake
 const token = localStorage.getItem("token");
 const socket = io("http://localhost:4000", {
   auth: { token },
@@ -27,54 +28,112 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [user, setUser] = useState<any>(null);
+
+  // ✅ Check auth + set user
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+
+    if (!token) {
+      navigate("/auth/login", { replace: true });
+    } else if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [navigate]);
+
+  // ✅ Send message with optimistic update
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+
+    const tempMessage: Message = {
+      _id: `temp-${Date.now()}`,
+      message: newMessage,
+      sender: {
+        _id: user.id || user._id,
+        name: user.name || "You",
+        username: user.username || "you",
+        image_url: user.avatar_url || "/default-avatar.png",
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, tempMessage]); // show instantly
+    const optimisticText = newMessage;
+    setNewMessage("");
+
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/match/find-players",
+        { message: optimisticText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const savedMessage = res.data;
+
+      // replace temp message with real one
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === tempMessage._id ? savedMessage : msg
+        )
+      );
+
+      // also emit via socket
+      socket.emit("sendMessage", {
+        message: optimisticText,
+        userId: user.id || user._id,
+      });
+    } catch (err) {
+      console.error("Error sending message:", err);
+      // rollback if failed
+      setMessages((prev) =>
+        prev.filter((msg) => msg._id !== tempMessage._id)
+      );
+    }
+  };
 
   // ✅ Load chat history
   useEffect(() => {
-    if (!token) {
-      navigate("/auth/login");
-      return;
-    }
+    if (!token) return;
 
     const fetchMessages = async () => {
       try {
         const res = await axios.get<Message[]>(
           "http://localhost:4000/match/find-players",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        setMessages(res.data.reverse()); // oldest → newest order
+        setMessages(res.data.reverse());
       } catch (err) {
         console.error("Failed to fetch chat history:", err);
       }
     };
 
     fetchMessages();
-  }, [navigate]);
+  }, []);
 
-  // ✅ Listen for new real-time messages
+  // ✅ Listen for real-time messages
   useEffect(() => {
     socket.on("receiveMessage", (msg: Message) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        // avoid duplicate if already exists
+        if (prev.find((m) => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
     });
+
+    socket.on("connect", () =>
+      console.log("✅ Socket connected:", socket.id)
+    );
+    socket.on("disconnect", () =>
+      console.log("❌ Socket disconnected")
+    );
 
     return () => {
       socket.off("receiveMessage");
+      socket.off("connect");
+      socket.off("disconnect");
     };
   }, []);
-
-  // ✅ Send message
-  const sendMessage = () => {
-    const userId = localStorage.getItem("userId");
-    if (!newMessage.trim() || !token || !userId) return;
-
-    socket.emit("sendMessage", {
-      message: newMessage,
-      userId,
-    });
-
-    setNewMessage("");
-  };
 
   return (
     <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
@@ -93,39 +152,22 @@ const ChatPage: React.FC = () => {
         animate={{ opacity: 1 }}
         className="glass flex-1 rounded-xl p-6 overflow-y-auto space-y-4"
       >
-        {messages.map((msg, idx) => (
-          <motion.div
-            key={msg._id || idx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.02 }}
-            className="flex gap-3"
-          >
-            <img
-              src={
-                msg.sender?.image_url ||
-                `https://placehold.co/40x40?text=${msg.sender?.name?.[0] || "U"}`
-              }
-              alt={msg.sender?.name}
-              className="w-10 h-10 rounded-full border border-cyan-400 object-cover"
+        {messages.map((msg) => {
+          const isMe = msg.sender?._id === (user?.id || user?._id);
+          const isTemp = msg._id?.startsWith?.("temp-");
+
+          return (
+            <MessageBubble
+              key={msg._id}
+              message={msg.message}
+              sender={isMe ? "You" : msg.sender?.name || "Unknown"}
+              username={msg.sender?.username}
+              timestamp={new Date(msg.timestamp).toLocaleTimeString()}
+              isMe={isMe}
+              isSending={isTemp}
             />
-            <div>
-              <p className="font-semibold text-cyan-300">
-                {msg.sender?.name}{" "}
-                <span className="text-gray-400 text-sm">
-                  @{msg.sender?.username}
-                </span>
-              </p>
-              <p className="text-white/90">{msg.message}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {new Date(msg.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+          );
+        })}
       </motion.div>
 
       {/* Input */}

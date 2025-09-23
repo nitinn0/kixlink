@@ -97,14 +97,17 @@ router.post("/find-players", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Message cannot be empty" });
     }
 
-    const chatMessage = new chatModel({
+    let chatMessage = new chatModel({
       message,
-      sender: req.user.userId, // comes from verifyToken middleware
+      sender: req.user.userId, // from verifyToken
     });
 
     await chatMessage.save();
 
-    res.status(200).json(chatMessage); // return the saved msg
+    // 🔑 Populate before returning
+    chatMessage = await chatMessage.populate("sender", "name username image_url");
+
+    res.status(200).json(chatMessage);
   } catch (error) {
     console.error("Error sending message:", error);
     res.status(500).json({ error: "Server Error while sending message" });
@@ -112,15 +115,21 @@ router.post("/find-players", verifyToken, async (req, res) => {
 });
 
 
+
 router.get('/find-players', verifyToken, async (req, res) => {
-    try {
-        const messages = await chatModel.find().sort({ timestamp: -1 }).limit(100); 
-        res.status(200).json(messages);
-    } catch (error) {
-        res.status(500).json({ error: "Server Error while fetching messages" });
-        console.log(error);
-    }
+  try {
+    const messages = await chatModel.find()
+      .populate("sender", "name username image_url")
+      .sort({ timestamp: -1 })
+      .limit(100);
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Server Error while fetching messages" });
+    console.log(error);
+  }
 });
+
 
 module.exports = router;
 
