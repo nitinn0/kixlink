@@ -2,23 +2,30 @@ const express = require('express');
 const router = express.Router();
 const {teamModel} = require('../models/User');
 const verifyToken = require('../middlewares/verifyToken');
+const verifyAdmin = require('../middlewares/verifyAdmin');
+router.post('/addTeam', verifyAdmin, async (req, res) => {
+  try {
+    const { teamName, players = [] } = req.body; // default players to []
 
-router.post('/create-team', verifyToken, async(req, res) => {
-    const {teamName} = req.body;
-    try{
-        if(!teamName){
-            res.status(400).json({error:"Input team name"});
-        }
-        const existingTeam = await teamModel.findOne({ teamName });
-        if (existingTeam) {
-            return res.status(400).json({ error: "Team name already exists" });
-        }
-        const newTeam = new teamModel({teamName});
-        await newTeam.save();
-    } catch(error){
-        res.status(500).json({error:"error"})
+    if (!teamName || typeof teamName !== "string") {
+      return res.status(400).json({ error: "Team name is required." });
     }
+
+    const newTeam = {
+      teamName: teamName.trim(),
+      players: Array.isArray(players) ? players.map((p) => p.trim()) : [],
+    };
+
+    const team = new teamModel(newTeam);
+    await team.save();
+
+    res.status(201).json({ message: "Team added successfully", team });
+  } catch (error) {
+    console.error("Add Team Error:", error);
+    res.status(500).json({ error: "Server Error while adding team" });
+  }
 });
+
 
 router.get('/teams', verifyToken, async(req, res) => {
     try {

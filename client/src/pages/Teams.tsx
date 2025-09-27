@@ -2,91 +2,75 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Users, Calendar, LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 type Team = {
   _id: string;
-  team_name: string;
+  teamName: string;
   createdAt: string;
+  players?: string[];
   image_url?: string;
-  members?: string[]; // optional at runtime
 };
 
 const TeamsPage: React.FC = () => {
-  const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [userId] = useState("12345"); // replace with your auth user id
 
+  // Get userId from JWT stored in localStorage
+  const token = localStorage.getItem("token");
+const userId = localStorage.getItem("username");
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const res = await axios.get("/api/teams");
-        let payload: any = res.data;
-
-        // Normalize common API shapes to an array
-        if (!Array.isArray(payload)) {
-          if (payload && Array.isArray(payload.teams)) payload = payload.teams;
-          else if (payload && Array.isArray(payload.data)) payload = payload.data;
-          else if (payload && Array.isArray(payload.result)) payload = payload.result;
-          else {
-            // unknown shape -> log for debugging and fallback to empty array
-            console.warn("Unexpected /api/teams response shape:", res.data);
-            payload = [];
-          }
-        }
-
-        setTeams(payload as Team[]);
+        const res = await axios.get("/teamMgmt/teams", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTeams(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Error fetching teams", err);
-        setTeams([]); // keep consistent type at runtime
+        console.error("Error fetching teams:", err);
+        setTeams([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchTeams();
-  }, []);
-
-  // ensure we always operate on an array
-  const safeTeams = Array.isArray(teams) ? teams : [];
+  }, [token]);
 
   const filteredTeams = search
-    ? safeTeams.filter((team) =>
-        team.team_name.toLowerCase().includes(search.toLowerCase())
+    ? teams.filter((t) =>
+        t.teamName.toLowerCase().includes(search.toLowerCase())
       )
-    : safeTeams;
+    : teams;
 
   const joinTeam = async (teamId: string) => {
-    try {
-      await axios.post(`/api/teams/${teamId}/join`, { userId });
-      setTeams((prev) =>
-        prev.map((t) => {
-          if (t._id !== teamId) return t;
-          const members = Array.isArray(t.members) ? t.members : [];
-          if (members.includes(userId)) return t;
-          return { ...t, members: [...members, userId] };
-        })
-      );
-    } catch (err) {
-      console.error("Error joining team", err);
-    }
-  };
+  if (!userId) return;
+  try {
+    await axios.post(
+      `/teamMgmt/teams/${teamId}/members`,
+      { player: userId },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    setTeams((prev) =>
+      prev.map((t) =>
+        t._id === teamId
+          ? { ...t, players: [...(t.players || []), userId] }
+          : t
+      )
+    );
+  } catch (err) {
+    console.error("Error joining team:", err);
+  }
+};
 
-  const leaveTeam = async (teamId: string) => {
-    try {
-      await axios.post(`/api/teams/${teamId}/leave`, { userId });
-      setTeams((prev) =>
-        prev.map((t) => {
-          if (t._id !== teamId) return t;
-          const members = Array.isArray(t.members) ? t.members : [];
-          return { ...t, members: members.filter((id) => id !== userId) };
-        })
-      );
-    } catch (err) {
-      console.error("Error leaving team", err);
-    }
+  const leaveTeam = (teamId: string) => {
+    if (!userId) return;
+    setTeams((prev) =>
+      prev.map((t) => {
+        if (t._id !== teamId) return t;
+        return { ...t, players: (t.players || []).filter((p) => p !== userId) };
+      })
+    );
+    // Optional: implement backend route to remove player
   };
 
   if (loading) {
@@ -99,6 +83,7 @@ const TeamsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,23 +92,21 @@ const TeamsPage: React.FC = () => {
         <h1 className="text-3xl font-extrabold flex items-center gap-3">
           <Users size={28} /> Teams
         </h1>
-
-        <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
-          <input
-            type="text"
-            placeholder="Search teams..."
-            className="bg-transparent outline-none text-sm text-white w-full"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search teams..."
+          className="bg-white/10 px-4 py-2 rounded-xl w-72 text-white outline-none"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </motion.div>
 
+      {/* Teams Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
         {filteredTeams.length > 0 ? (
           filteredTeams.map((team) => {
-            const members = Array.isArray(team.members) ? team.members : [];
-            const isMember = members.includes(userId);
+            const members = Array.isArray(team.players) ? team.players : [];
+            const isMember = userId ? members.includes(userId) : false;
             return (
               <motion.div
                 key={team._id}
@@ -134,18 +117,20 @@ const TeamsPage: React.FC = () => {
                 {team.image_url && (
                   <img
                     src={team.image_url}
-                    alt={team.team_name}
+                    alt={team.teamName}
                     className="w-full h-32 object-cover rounded-lg"
                   />
                 )}
-                <h2 className="text-xl font-bold">{team.team_name}</h2>
+                <h2 className="text-xl font-bold">{team.teamName}</h2>
                 <p className="text-sm text-gray-300 flex items-center gap-2">
                   <Calendar size={16} />{" "}
                   {team.createdAt
                     ? new Date(team.createdAt).toLocaleDateString()
                     : "—"}
                 </p>
-                <p className="text-sm text-gray-300">Members: {members.length}</p>
+                <p className="text-sm text-gray-300">
+                  Members: {members.length}
+                </p>
 
                 <button
                   onClick={() =>
