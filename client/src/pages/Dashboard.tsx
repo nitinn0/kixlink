@@ -61,6 +61,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [playerCount, setPlayerCount] = useState<number>(0);
   const [matchCount, setMatchCount] = useState<number>(0);
+  const [teamCount, setTeamCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
@@ -115,6 +116,25 @@ const Dashboard = () => {
       }
     };
 
+    const fetchTeamCount = async() => {
+      try {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+
+        const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if(Array.isArray(res.data)){
+          setTeamCount(res.data.length);
+        } else {
+          setTeamCount(0);
+        }
+      } catch(err){
+        console.error(err);
+        setTeamCount(0);
+      }
+    };
+
     const fetchMatchesCount = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -135,6 +155,7 @@ const Dashboard = () => {
       }
     };
 
+    fetchTeamCount();
     fetchPlayerCount();
     fetchMatchesCount();
   }, []);
@@ -203,6 +224,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
   const stats = [
     { title: "Total Players", value: playerCount, path: "/players" },
     { title: "Upcoming Matches", value: matchCount, path: "/matches" },
+    { title: "Total Teams", value: teamCount, path: "/teams" },
     { title: "Active Tournaments", value: 3 },
     { title: "Registered Teams", value: 45 },
   ];

@@ -16,28 +16,25 @@ const TeamsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Get userId from JWT stored in localStorage
   const token = localStorage.getItem("token");
-const userId = localStorage.getItem("username");
+  const userId = localStorage.getItem("username");
 
-
-useEffect(() => {
-  const fetchTeams = async () => {
-    try {
-      const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTeams(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error("Error fetching teams:", err);
-      setTeams([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchTeams();
-}, [token]);
-
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTeams(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Error fetching teams:", err);
+        setTeams([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeams();
+  }, [token]);
 
   const filteredTeams = search
     ? teams.filter((t) =>
@@ -46,34 +43,35 @@ useEffect(() => {
     : teams;
 
   const joinTeam = async (teamId: string) => {
-  if (!userId) return;
-  try {
-    await axios.post(
-      `/teamMgmt/teams/${teamId}/members`,
-      { player: userId },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-    );
-    setTeams((prev) =>
-      prev.map((t) =>
-        t._id === teamId
-          ? { ...t, players: [...(t.players || []), userId] }
-          : t
-      )
-    );
-  } catch (err) {
-    console.error("Error joining team:", err);
-  }
-};
+    if (!userId) return;
+    try {
+      await axios.post(
+        `http://localhost:4000/teamMgmt/teams/${teamId}/members`,
+        { player: userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTeams((prev) =>
+        prev.map((t) =>
+          t._id === teamId
+            ? { ...t, players: [...(t.players || []), userId] }
+            : t
+        )
+      );
+    } catch (err) {
+      console.error("Error joining team:", err);
+    }
+  };
 
   const leaveTeam = (teamId: string) => {
     if (!userId) return;
     setTeams((prev) =>
-      prev.map((t) => {
-        if (t._id !== teamId) return t;
-        return { ...t, players: (t.players || []).filter((p) => p !== userId) };
-      })
+      prev.map((t) =>
+        t._id === teamId
+          ? { ...t, players: (t.players || []).filter((p) => p !== userId) }
+          : t
+      )
     );
-    // Optional: implement backend route to remove player
+    // Optional: call backend to remove player
   };
 
   if (loading) {
@@ -110,13 +108,30 @@ useEffect(() => {
           filteredTeams.map((team) => {
             const members = Array.isArray(team.players) ? team.players : [];
             const isMember = userId ? members.includes(userId) : false;
+
             return (
               <motion.div
                 key={team._id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white/10 rounded-xl p-5 shadow-lg flex flex-col gap-3"
+                className="relative bg-white/10 rounded-xl p-5 shadow-lg flex flex-col gap-3"
               >
+                {/* Join/Leave Button Top-Right */}
+                <div className="absolute top-10 right-10">
+                  <button
+                    onClick={() =>
+                      isMember ? leaveTeam(team._id) : joinTeam(team._id)
+                    }
+                    className={`px-10 py-2 rounded-md text-sm font-semibold transition ${
+                      isMember
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-cyan-500 hover:bg-cyan-600"
+                    }`}
+                  >
+                    {isMember ? "Leave" : "Join"}
+                  </button>
+                </div>
+
                 {team.image_url && (
                   <img
                     src={team.image_url}
@@ -131,30 +146,7 @@ useEffect(() => {
                     ? new Date(team.createdAt).toLocaleDateString()
                     : "—"}
                 </p>
-                <p className="text-sm text-gray-300">
-                  Members: {members.length}
-                </p>
-
-                <button
-                  onClick={() =>
-                    isMember ? leaveTeam(team._id) : joinTeam(team._id)
-                  }
-                  className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 font-medium transition ${
-                    isMember
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-cyan-500 hover:bg-cyan-600"
-                  }`}
-                >
-                  {isMember ? (
-                    <>
-                      <LogOut size={16} /> Leave
-                    </>
-                  ) : (
-                    <>
-                      <LogIn size={16} /> Join
-                    </>
-                  )}
-                </button>
+                <p className="text-sm text-gray-300">Members: {members.length}</p>
               </motion.div>
             );
           })
