@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { User, Search, Calendar } from "lucide-react";
+import { Users, Search, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-type Player = {
+type Team = {
   _id: string;
-  name: string;
-  username: string;
-  position?: string;
+  team_name: string;
   createdAt: string;
-  image_url?: string;
+  logo_url?: string;
 };
 
-const PlayersPage: React.FC = () => {
+const TeamsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // ✅ Check if user is logged in
+  // ✅ Redirect if not logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -27,33 +25,33 @@ const PlayersPage: React.FC = () => {
     }
   }, [navigate]);
 
-  // ✅ Fetch players
+  // ✅ Fetch teams dynamically
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchTeams = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return; // avoid request if not logged in
+        if (!token) return;
 
-        const res = await axios.get<Player[]>("http://localhost:4000/players", {
+        const res = await axios.get<Team[]>("http://localhost:4000/teams", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setPlayers(res.data);
+
+        setTeams(res.data);
       } catch (error) {
-        console.error("Error fetching players:", error);
+        console.error("Error fetching teams:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlayers();
+    fetchTeams();
   }, []);
 
-  const filteredPlayers = players.filter(
-    (player) =>
-      player.name.toLowerCase().includes(search.toLowerCase()) ||
-      player.username.toLowerCase().includes(search.toLowerCase())
+  // ✅ Search filter
+  const filteredTeams = teams.filter((team) =>
+    team.team_name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -65,14 +63,14 @@ const PlayersPage: React.FC = () => {
         className="flex justify-between items-center mb-6"
       >
         <h1 className="text-3xl font-extrabold flex items-center gap-3">
-          <User size={28} /> Players
+          <Users size={28} /> Teams
         </h1>
 
         <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
           <Search size={18} className="text-cyan-400" />
           <input
             type="text"
-            placeholder="Search players..."
+            placeholder="Search teams..."
             className="bg-transparent outline-none text-sm text-white w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -85,9 +83,9 @@ const PlayersPage: React.FC = () => {
         <div className="flex justify-center items-center flex-1">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
         </div>
-      ) : filteredPlayers.length === 0 ? (
+      ) : filteredTeams.length === 0 ? (
         <p className="text-gray-400 text-center mt-10 text-lg">
-          No players found ⚽
+          No teams found 🏆
         </p>
       ) : (
         <motion.div
@@ -99,17 +97,15 @@ const PlayersPage: React.FC = () => {
             <thead>
               <tr className="border-b border-gray-700">
                 <th className="p-3">#</th>
-                <th className="p-3">Avatar</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Username</th>
-                <th className="p-3">Position</th>
-                <th className="p-3">Joined</th>
+                <th className="p-3">Logo</th>
+                <th className="p-3">Team Name</th>
+                <th className="p-3">Created</th>
               </tr>
             </thead>
             <tbody>
-              {filteredPlayers.map((player, index) => (
+              {filteredTeams.map((team, index) => (
                 <motion.tr
-                  key={player._id}
+                  key={team._id}
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -118,22 +114,15 @@ const PlayersPage: React.FC = () => {
                   <td className="p-3 text-gray-300">{index + 1}</td>
                   <td className="p-3">
                     <img
-                      src={
-                        player.image_url ||
-                        "https://via.placeholder.com/40x40?text=P"
-                      }
-                      alt={player.name}
+                      src={team.logo_url || "https://via.placeholder.com/40x40?text=T"}
+                      alt={team.team_name}
                       className="w-10 h-10 object-cover rounded-full border border-cyan-400"
                     />
                   </td>
-                  <td className="p-3 font-semibold">{player.name}</td>
-                  <td className="p-3 text-gray-300">@{player.username}</td>
-                  <td className="p-3 text-cyan-300">
-                    {player.position || "N/A"}
-                  </td>
+                  <td className="p-3 font-semibold">{team.team_name}</td>
                   <td className="p-3 flex items-center gap-2 text-gray-400">
                     <Calendar size={16} />{" "}
-                    {new Date(player.createdAt).toLocaleDateString()}
+                    {new Date(team.createdAt).toLocaleDateString()}
                   </td>
                 </motion.tr>
               ))}
@@ -145,4 +134,4 @@ const PlayersPage: React.FC = () => {
   );
 };
 
-export default PlayersPage;
+export default TeamsPage;
