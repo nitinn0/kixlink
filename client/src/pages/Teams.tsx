@@ -19,22 +19,25 @@ const TeamsPage: React.FC = () => {
   // Get userId from JWT stored in localStorage
   const token = localStorage.getItem("token");
 const userId = localStorage.getItem("username");
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const res = await axios.get("/teamMgmt/teams", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeams(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Error fetching teams:", err);
-        setTeams([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTeams();
-  }, [token]);
+
+
+useEffect(() => {
+  const fetchTeams = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTeams(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching teams:", err);
+      setTeams([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchTeams();
+}, [token]);
+
 
   const filteredTeams = search
     ? teams.filter((t) =>
