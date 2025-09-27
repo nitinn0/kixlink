@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {userModel, arenaModel} = require('../models/User');
+const {userModel, arenaModel, teamModel} = require('../models/User');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 const verifyToken = require('../middlewares/verifyToken');
 const {matchModel} = require('../models/User');
@@ -81,6 +81,61 @@ router.post('/deleteMatch/:Matchid', verifyAdmin, async(req, res) =>{
         console.log(error);
     }
 });
+
+router.post('/addTeam', verifyAdmin, async (req, res) => {
+  try {
+    const { teamName, players = [] } = req.body; // default players to []
+
+    if (!teamName || typeof teamName !== "string") {
+      return res.status(400).json({ error: "Team name is required." });
+    }
+
+    const newTeam = {
+      teamName: teamName.trim(),
+      players: Array.isArray(players) ? players.map((p) => p.trim()) : [],
+    };
+
+    const team = new teamModel(newTeam);
+    await team.save();
+
+    res.status(201).json({ message: "Team added successfully", team });
+  } catch (error) {
+    console.error("Add Team Error:", error);
+    res.status(500).json({ error: "Server Error while adding team" });
+  }
+});
+
+
+// PATCH /teams/:id/addPlayer
+router.patch('/teams/:id/addPlayer', verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { players } = req.body; // expecting array of player IDs or names
+
+    if (!players || !Array.isArray(players) || players.length === 0) {
+      return res.status(400).json({ error: "At least one player is required." });
+    }
+
+    const team = await teamModel.findById(id);
+    if (!team) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // Avoid duplicates
+    const uniquePlayers = [
+      ...new Set([...team.players, ...players.map((p) => p.trim())]),
+    ];
+
+    team.players = uniquePlayers;
+    await team.save();
+
+    res.status(200).json({ message: "Players added successfully", team });
+  } catch (error) {
+    console.error("Add Player Error:", error);
+    res.status(500).json({ error: "Server Error while adding players" });
+  }
+});
+
 
 router.post('/addArena', verifyAdmin, async(req, res) => {
     try {
