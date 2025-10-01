@@ -65,6 +65,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -91,6 +93,8 @@ const Dashboard = () => {
       setLoading(false);
     }
   }, [navigate]);
+
+  
 
   // ---- Fetch Counts ----
   useEffect(() => {
