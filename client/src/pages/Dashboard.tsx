@@ -62,6 +62,9 @@ const Dashboard = () => {
   const [playerCount, setPlayerCount] = useState<number>(0);
   const [matchCount, setMatchCount] = useState<number>(0);
   const [teamCount, setTeamCount] = useState<number>(0);
+    const [players, setPlayers] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
@@ -95,6 +98,30 @@ const Dashboard = () => {
   }, [navigate]);
 
   
+   useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    const filteredPlayers = players.filter((p) =>
+      p.name?.toLowerCase().includes(query)
+    );
+    const filteredTeams = teams.filter((t) =>
+      t.name?.toLowerCase().includes(query)
+    );
+    const filteredMatches = matches.filter((m) =>
+      m.title?.toLowerCase().includes(query)
+    );
+
+    setSearchResults([
+      ...filteredPlayers.map((p) => ({ type: "Player", label: p.name })),
+      ...filteredTeams.map((t) => ({ type: "Team", label: t.name })),
+      ...filteredMatches.map((m) => ({ type: "Match", label: m.title })),
+    ]);
+  }, [searchQuery, players, teams, matches]);
 
   // ---- Fetch Counts ----
   useEffect(() => {
