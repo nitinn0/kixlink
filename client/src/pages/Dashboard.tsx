@@ -257,7 +257,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
     { title: "Upcoming Matches", value: matchCount, path: "/matches" },
     { title: "Total Teams", value: teamCount, path: "/teams" },
     { title: "Active Tournaments", value: 3 },
-    { title: "Registered Teams", value: 45 },
+    { title: "Registered Teams", value: teamCount, path:"/teams" },
   ];
 
   return (
@@ -306,10 +306,33 @@ console.log("📤 Sending:", { id: user._id, ...formData });
             <Search size={18} className="text-cyan-400" />
             <input
               type="text"
-              placeholder="Search players, teams..."
-              className="bg-transparent outline-none text-sm text-white w-64"
+              placeholder="Search players, teams, matches..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent outline-none text-sm text-white w-full"
             />
           </div>
+
+          {/* Search Results Dropdown */}
+          {searchResults.length > 0 && (
+            <div className="absolute top-16 left-5 w-72 bg-[#1e1e2f] rounded-xl shadow-lg border border-cyan-600 max-h-60 overflow-y-auto z-50">
+              {searchResults.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    toast.info(`${item.type}: ${item.label}`);
+                    setSearchQuery(""); // clear search
+                    setSearchResults([]);
+                  }}
+                   className="px-4 py-2 hover:bg-cyan-600/30 cursor-pointer text-sm text-white"
+                >
+                  <span className="font-semibold text-cyan-400">{item.type}</span> — {item.label}
+                </div>
+              ))}
+            </div>
+          )}
+
+          
           <div className="flex items-center gap-6">
             <Bell size={24} className="text-pink-400 cursor-pointer" />
 <img
