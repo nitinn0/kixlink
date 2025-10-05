@@ -56,7 +56,7 @@ const ArenaDetails: React.FC = () => {
     );
 
   return (
-  <div className="flex flex-row p-4 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] min-h-screen text-white gap-8">
+  <div className="flex flex-row p-8 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] min-h-screen text-white gap-8">
   {/* Arena Info Card */}
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -69,7 +69,7 @@ const ArenaDetails: React.FC = () => {
         "https://images.unsplash.com/photo-1517747614396-d21a78b850e8?q=80&w=1600&auto=format&fit=crop"
       }
       alt={arena.arenaName}
-      className="w-full h-80 object-cover rounded-lg mb-6"
+      className="w-full h-80 object-cover rounded-lg mb-8"
     />
 
     <h1 className="text-3xl font-bold mb-2 neon-text">{arena.arenaName}</h1>
@@ -86,9 +86,9 @@ const ArenaDetails: React.FC = () => {
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="flex-1"
+    className="flex-1 mx-4"
   >
-    <h2 className="text-2xl font-semibold mb-4 neon-text">Matches</h2>
+    <h2 className="text-2xl font-semibold mb-4 neon-text mt-2">Matches</h2>
 
     {matches.length === 0 ? (
       <p className="text-gray-400">No matches scheduled in this arena yet.</p>
