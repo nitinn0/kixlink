@@ -126,65 +126,76 @@ const Dashboard = () => {
   // ---- Fetch Counts ----
   useEffect(() => {
     const fetchPlayerCount = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-        const res = await axios.get("http://localhost:4000/players", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    const res = await axios.get("http://localhost:4000/players", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        if (Array.isArray(res.data)) {
-          setPlayerCount(res.data.length);
-        } else if (Array.isArray(res.data.players)) {
-          setPlayerCount(res.data.players.length);
-        } else {
-          setPlayerCount(0);
-        }
-      } catch (err) {
-        console.error("Error fetching player count:", err);
-        setPlayerCount(0);
-      }
-    };
+    if (Array.isArray(res.data)) {
+      setPlayers(res.data); // ✅ Store players
+      setPlayerCount(res.data.length);
+    } else if (Array.isArray(res.data.players)) {
+      setPlayers(res.data.players); // ✅ Store players
+      setPlayerCount(res.data.players.length);
+    } else {
+      setPlayers([]);
+      setPlayerCount(0);
+    }
+  } catch (err) {
+    console.error("Error fetching players:", err);
+    setPlayers([]);
+    setPlayerCount(0);
+  }
+};
 
-    const fetchTeamCount = async() => {
-      try {
-        const token = localStorage.getItem("token");
-        if(!token) return;
+    const fetchTeamCount = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-        const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if(Array.isArray(res.data)){
-          setTeamCount(res.data.length);
-        } else {
-          setTeamCount(0);
-        }
-      } catch(err){
-        console.error(err);
-        setTeamCount(0);
-      }
-    };
+    const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (Array.isArray(res.data)) {
+      setTeams(res.data); // ✅ Store teams
+      setTeamCount(res.data.length);
+    } else {
+      setTeams([]);
+      setTeamCount(0);
+    }
+  } catch (err) {
+    console.error("Error fetching teams:", err);
+    setTeams([]);
+    setTeamCount(0);
+  }
+};
 
     const fetchMatchesCount = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-        const res = await axios.get("http://localhost:4000/match/matches", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    const res = await axios.get("http://localhost:4000/match/matches", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        if (Array.isArray(res.data)) {
-          setMatchCount(res.data.length);
-        } else {
-          setMatchCount(0);
-        }
-      } catch (err) {
-        console.error("Error fetching matches:", err);
-        setMatchCount(0);
-      }
-    };
+    if (Array.isArray(res.data)) {
+      setMatches(res.data); // ✅ Store matches
+      setMatchCount(res.data.length);
+    } else {
+      setMatches([]);
+      setMatchCount(0);
+    }
+  } catch (err) {
+    console.error("Error fetching matches:", err);
+    setMatches([]);
+    setMatchCount(0);
+  }
+};
 
     fetchTeamCount();
     fetchPlayerCount();
@@ -302,35 +313,36 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Top Navbar */}
         <div className="glass flex items-center justify-between p-5 m-4 rounded-2xl shadow-lg">
-          <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl">
-            <Search size={18} className="text-cyan-400" />
-            <input
-              type="text"
-              placeholder="Search players, teams, matches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent outline-none text-sm text-white w-full"
-            />
-          </div>
+          <div className="relative flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl">
+  <Search size={18} className="text-cyan-400" />
+  <input
+    type="text"
+    placeholder="Search players, teams, matches..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="bg-transparent outline-none text-sm text-white w-full"
+  />
 
-          {/* Search Results Dropdown */}
-          {searchResults.length > 0 && (
-            <div className="absolute top-16 left-5 w-72 bg-[#1e1e2f] rounded-xl shadow-lg border border-cyan-600 max-h-60 overflow-y-auto z-50">
-              {searchResults.map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    toast.info(`${item.type}: ${item.label}`);
-                    setSearchQuery(""); // clear search
-                    setSearchResults([]);
-                  }}
-                   className="px-4 py-2 hover:bg-cyan-600/30 cursor-pointer text-sm text-white"
-                >
-                  <span className="font-semibold text-cyan-400">{item.type}</span> — {item.label}
-                </div>
-              ))}
-            </div>
-          )}
+  {searchResults.length > 0 && (
+    <div className="absolute top-12 left-0 w-full bg-[#1e1e2f] rounded-xl shadow-lg border border-cyan-600 max-h-60 overflow-y-auto z-50">
+      {searchResults.map((item, idx) => (
+        <div
+          key={idx}
+          onClick={() => {
+            toast.info(`${item.type}: ${item.label}`);
+            setSearchQuery("");
+            setSearchResults([]);
+          }}
+          className="px-4 py-2 hover:bg-cyan-600/30 cursor-pointer text-sm text-white"
+        >
+          <span className="font-semibold text-cyan-400">{item.type}</span> —{" "}
+          {item.label}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
 
           
           <div className="flex items-center gap-6">
@@ -392,22 +404,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
               </ResponsiveContainer>
             </div>
 
-            {/* Bar Chart */}
-            <div className="glass rounded-2xl p-5 neon-card">
-              <h3 className="text-xl font-semibold mb-4 neon-text">
-                Top Goal Scorers
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={topPlayers}>
-                  <XAxis dataKey="name" stroke="#ccc" />
-                  <YAxis stroke="#ccc" />
-                  <Tooltip
-                    contentStyle={{ background: "#222", borderRadius: "10px" }}
-                  />
-                  <Bar dataKey="goals" fill="#ff00f7" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            
           </div>
 
           {/* Pie Chart */}
