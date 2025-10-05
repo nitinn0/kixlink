@@ -40,6 +40,18 @@ router.get('/arena', async (req, res) => {
   }
 });
 
+router.get('/arena/:id', async (req, res) => {
+  try {
+    const arena = await arenaModel.findById(req.params.id);
+    if(!arena){
+      return res.status(404).json({error: "Arena not found"});
+    }
+    return res.status(200).json(arena);
+  } catch(error){
+    return res.status(500).json({error: error.message});
+  }
+});
+
 router.put("/users/update", async (req, res) => {
   console.log("📥 /users/update hit with body:", req.body);
   try {

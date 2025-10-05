@@ -7,6 +7,7 @@ import PlayersPage from "./pages/Players";
 import MatchesPage from "./pages/Matches";
 import EditProfile from "./pages/EditProfile";
 import TeamsPage from "./pages/Teams";
+import ArenaDetails from "./pages/ArenaDetails";
 import ChatPage from "./pages/Chat";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/arena" element={<ArenasPage />} />
+        <Route path="/arena/:id" element={<ArenaDetails />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/matches" element={<MatchesPage />} /> 

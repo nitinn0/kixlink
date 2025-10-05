@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Building2, Users, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 type Arena = {
   _id: string;
@@ -14,6 +15,7 @@ const ArenasPage: React.FC = () => {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchArenas = async () => {
@@ -78,7 +80,7 @@ const ArenasPage: React.FC = () => {
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.05 }}
   className="glass neon-card rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] transition w-[300px] mx-auto"
-  // onClick={() => window.location.href = `/arena/${arena._id}`} 
+  onClick={() => navigate(`/arena/${arena._id}`)}
 >
   {/* Arena Image */}
   <img
