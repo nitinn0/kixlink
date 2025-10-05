@@ -98,30 +98,33 @@ const Dashboard = () => {
   }, [navigate]);
 
   
-   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
+  useEffect(() => {
+  if (!searchQuery.trim()) {
+    setSearchResults([]);
+    return;
+  }
 
-    const query = searchQuery.toLowerCase();
+  const query = searchQuery.toLowerCase();
 
-    const filteredPlayers = players.filter((p) =>
-      p.name?.toLowerCase().includes(query)
-    );
-    const filteredTeams = teams.filter((t) =>
-      t.name?.toLowerCase().includes(query)
-    );
-    const filteredMatches = matches.filter((m) =>
-      m.title?.toLowerCase().includes(query)
-    );
+  const filteredPlayers = players.filter((p) =>
+    p.name?.toLowerCase().includes(query)
+  );
 
-    setSearchResults([
-      ...filteredPlayers.map((p) => ({ type: "Player", label: p.name })),
-      ...filteredTeams.map((t) => ({ type: "Team", label: t.name })),
-      ...filteredMatches.map((m) => ({ type: "Match", label: m.title })),
-    ]);
-  }, [searchQuery, players, teams, matches]);
+  const filteredTeams = teams.filter((t) =>
+    (t.name || t.teamName)?.toLowerCase().includes(query)
+  );
+
+  const filteredMatches = matches.filter((m) =>
+    (m.title || m.matchTitle)?.toLowerCase().includes(query)
+  );
+
+  setSearchResults([
+    ...filteredPlayers.map((p) => ({ type: "Player", label: p.name })),
+    ...filteredTeams.map((t) => ({ type: "Team", label: t.teamName || t.name })),
+    ...filteredMatches.map((m) => ({ type: "Match", label: m.title || m.matchTitle })),
+  ]);
+}, [searchQuery, players, teams, matches]);
+
 
   // ---- Fetch Counts ----
   useEffect(() => {
@@ -159,6 +162,7 @@ const Dashboard = () => {
     const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
       headers: { Authorization: `Bearer ${token}` },
     });
+    console.log("✅ Teams fetched:", res.data);
 
     if (Array.isArray(res.data)) {
       setTeams(res.data); // ✅ Store teams
