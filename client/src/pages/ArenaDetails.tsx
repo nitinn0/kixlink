@@ -56,12 +56,12 @@ const ArenaDetails: React.FC = () => {
     );
 
   return (
-  <div className="flex flex-col md:flex-row p-4 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] min-h-screen text-white gap-8">
+  <div className="flex flex-row p-4 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] min-h-screen text-white gap-8">
   {/* Arena Info Card */}
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="glass neon-card rounded-xl overflow-hidden shadow-lg p-6 max-w-2xl flex-shrink-0"
+    className="glass neon-card rounded-xl overflow-hidden shadow-lg p-6 w-1/3"
   >
     <img
       src={
@@ -117,7 +117,6 @@ const ArenaDetails: React.FC = () => {
     )}
   </motion.div>
 </div>
-
 
   );
 };
