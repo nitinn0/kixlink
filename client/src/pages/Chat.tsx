@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { MessageBubble } from "../pages/MessageBubble";
 
 type Message = {
+  isError: any;
+  error: string | undefined;
   _id: string;
   sender: {
     _id: string;
@@ -83,39 +85,253 @@ const ChatPage: React.FC = () => {
     fetchUser();
   }, [navigate]);
 
-  // 2️⃣ Initialize Socket once with token auth
+  // 1️⃣ Initialize Socket.IO connection
   useEffect(() => {
+    if (!user) return;
+    
+    console.log("🔌 Initializing socket connection...");
     const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const newSocket = io("http://localhost:4000", {
-      auth: { token }, // ✅ send token for backend verification
-      transports: ["websocket"],
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+    
+    // Create a new socket connection with explicit configuration
+    const socketOptions = {
+      auth: { 
+        token,
+        userId: user._id || user.id
+      },
+      transports: ['websocket'],
+      upgrade: false,
       reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+      autoConnect: true,
+      forceNew: true,
+      withCredentials: true
+    };
+    
+    console.log('Creating new socket with options:', socketOptions);
+    const newSocket = io("http://localhost:4000", socketOptions);
+    
+    // Connection established
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id);
+      // Fetch latest messages when connected
+      fetchMessages();
+    });
+    
+    // Connection error
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err.message);
+      console.log('Connection error details:', {
+        message: err.message,
+        description: err.description,
+        context: err.context
+      });
+      
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        if (!newSocket.connected) {
+          console.log('Attempting to reconnect...');
+          newSocket.connect();
+        }
+      }, 2000);
+    });
+    
+    // Handle disconnection
+    newSocket.on("disconnect", (reason) => {
+      console.warn("⚠️ Socket disconnected. Reason:", reason);
+      if (reason === 'io server disconnect') {
+        // The server has forcefully disconnected the socket
+        console.log('Server disconnected the socket. Attempting to reconnect...');
+        newSocket.connect();
+      }
+    });
+    
+    // Handle reconnection attempts
+    newSocket.io.on("reconnect_attempt", (attempt) => {
+      console.log(`🔄 Reconnection attempt ${attempt}`);
+    });
+    
+    newSocket.io.on("reconnect", (attempt) => {
+      console.log(`✅ Reconnected after ${attempt} attempts`);
+    });
+    
+    newSocket.io.on("reconnect_error", (error) => {
+      console.error("❌ Reconnection error:", error);
+    });
+    
+    newSocket.io.on("reconnect_failed", () => {
+      console.error("❌ Reconnection failed after all attempts");
     });
 
     newSocket.on("connect", () => {
       console.log("✅ Socket connected:", newSocket.id);
+      // Fetch latest messages when connected
+      fetchMessages();
     });
 
     newSocket.on("disconnect", (reason) => {
       console.warn("❌ Socket disconnected:", reason);
     });
 
-    newSocket.on("receiveMessage", (msg: Message) => {
-      console.log("📩 Received message via socket:", msg);
-      setMessages((prev) => {
-        if (prev.find((m) => m._id === msg._id)) return prev;
-        return [...prev, msg];
+    // 5️⃣ Handle retrying a failed message
+    const handleRetryMessage = async (failedMessage: Message) => {
+      if (!user) return;
+      
+      // Remove the failed message
+      setMessages(prev => prev.filter(m => m._id !== failedMessage._id));
+      
+      // Create a new message with the same content
+      const retryMessage = {
+        ...failedMessage,
+        _id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        isError: false,
+        error: undefined,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add the new message with a new ID
+      setMessages(prev => [...prev, retryMessage]);
+      
+      try {
+        // Try to send via WebSocket first
+        if (socket?.connected) {
+          socket.emit('sendMessage', {
+            message: failedMessage.message,
+            tempId: retryMessage._id
+          });
+        }
+        
+        // Then send via HTTP
+        const token = localStorage.getItem("token");
+        await axios.post(
+          'http://localhost:4000/messages',
+          { message: failedMessage.message },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            timeout: 5000
+          }
+        );
+        
+        // Update the message to remove the sending state
+        setMessages(prev => 
+          prev.map(msg => 
+            msg._id === retryMessage._id 
+              ? { ...msg, isSending: false } 
+              : msg
+          )
+        );
+        
+      } catch (error) {
+        console.error('Error retrying message:', error);
+        
+        // Mark as failed again
+        setMessages(prev => 
+          prev.map(msg => 
+            msg._id === retryMessage._id 
+              ? { 
+                  ...msg, 
+                  isError: true,
+                  error: 'Failed to send. Tap to retry.' 
+                } 
+              : msg
+          )
+        );
+      }
+    };
+
+    // Handle new incoming messages
+    const handleNewMessage = (incomingMessage: Message & { tempId?: string }) => {
+      console.log('📨 Received new message:', incomingMessage);
+      
+      setMessages(prev => {
+        // Normalize the message data
+        const normalizedMessage = {
+          ...incomingMessage,
+          _id: incomingMessage._id || incomingMessage.tempId || `temp-${Date.now()}`,
+          timestamp: incomingMessage.timestamp || new Date().toISOString()
+        };
+        
+        // Check if we already have this message (by ID or tempId or content)
+        const messageExists = prev.some(msg => 
+          msg._id === normalizedMessage._id || 
+          (normalizedMessage.tempId && msg._id === normalizedMessage.tempId) ||
+          (msg._id?.startsWith('temp-') && 
+           msg.message === normalizedMessage.message && 
+           msg.sender?._id === normalizedMessage.sender?._id)
+        );
+        
+        if (messageExists) {
+          // Update existing message
+          return prev.map(msg => 
+            (normalizedMessage.tempId && msg._id === normalizedMessage.tempId) || 
+            (msg._id === normalizedMessage._id) ? 
+            { ...normalizedMessage, isSending: false } : 
+            msg
+          );
+        }
+        
+        // Add new message
+        console.log('Adding new message to state:', normalizedMessage);
+        return [...prev, normalizedMessage];
       });
+    };
+
+    // Set up event listeners
+    const onMessage = (msg: any) => {
+      console.log('📨 Received message event:', msg);
+      handleNewMessage(msg);
+    };
+
+    newSocket.on("receiveMessage", onMessage);
+    
+    // Log connection status
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err.message);
     });
 
-    setSocket(newSocket);
+    newSocket.on("connect_timeout", () => {
+      console.warn("⌛ Socket connection timeout");
+    });
 
-    return () => {
-      newSocket.disconnect();
+    newSocket.on("reconnect_attempt", (attempt) => {
+      console.log(`🔄 Reconnection attempt ${attempt}`);
+    });
+
+    // Debug all events
+    const onAny = (event: string, ...args: any[]) => {
+      if (['receiveMessage', 'pong', 'ping'].includes(event)) return;
+      console.log(`🔍 Socket event: ${event}`, args);
     };
-  }, []);
+    newSocket.onAny(onAny);
+
+    setSocket(newSocket);
+    console.log('✅ Socket instance created and configured');
+
+    // Clean up function
+    return () => {
+      console.log('🧹 Cleaning up socket listeners...');
+      newSocket.off("receiveMessage", onMessage);
+      newSocket.offAny(onAny);
+      newSocket.off("connect_error");
+      newSocket.off("connect_timeout");
+      newSocket.off("reconnect_attempt");
+      clearTimeout(connectionTimeout);
+      
+      if (newSocket.connected) {
+        console.log('Disconnecting socket...');
+        newSocket.disconnect();
+      }
+    };
+  }, [user?.id]); // Reconnect if user changes
 
   // Reference to the messages container for auto-scrolling
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -125,132 +341,156 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 3️⃣ Fetch messages on mount and when user changes
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token || !user) return;
+  // 3️⃣ Fetch messages function
+  const fetchMessages = React.useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-        console.log("📡 Fetching messages...");
-        const res = await axios.get("http://localhost:4000/messages", {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-        });
-        
-        if (res.data && Array.isArray(res.data)) {
-          console.log("✅ Messages fetched:", res.data.length);
-          // Sort messages by timestamp to ensure correct order
-          const sortedMessages = [...res.data].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
-          setMessages(sortedMessages);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching messages:", error);
+      console.log("📡 Fetching messages...");
+      const res = await axios.get("http://localhost:4000/messages", {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+      });
+      
+      if (res.data && Array.isArray(res.data)) {
+        console.log("✅ Messages fetched:", res.data.length);
+        // Sort messages by timestamp to ensure correct order
+        const sortedMessages = [...res.data].sort(
+          (a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
+        );
+        setMessages(sortedMessages);
       }
-    };
-
-    fetchMessages();
-  }, [user]); // Re-fetch when user changes
-
-  // 4️⃣ Send message
-  const sendMessage = async () => {
-    console.log('sendMessage called');
-    const token = localStorage.getItem("token");
-    
-    if (!token) {
-      console.error('No authentication token found');
-      alert('Please log in to send messages');
-      navigate('/auth/login');
-      return;
+    } catch (error) {
+      console.error("❌ Error fetching messages:", error);
     }
-    
-    if (!user) {
-      console.error('User data not loaded');
-      alert('Error: User data not loaded. Please refresh the page.');
+  }, []);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
+  // 4️⃣ Send message - optimized for speed and real-time updates
+  const sendMessage = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !user) {
+      console.error("No token or user found");
       return;
     }
     
     const messageText = newMessage.trim();
-    if (!messageText) {
-      console.log('Empty message, not sending');
-      return;
-    }
+    if (!messageText) return;
     
+    // 1. Create a unique temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const userId = user._id || user.id;
-    console.log('Sending message:', { userId, message: messageText });
     
-    console.log('Creating optimistic message with userId:', userId);
-    // Create optimistic message
+    // 2. Create optimistic message
     const optimisticMessage: Message = {
-      _id: `temp-${Date.now()}`,
+      _id: tempId,
       message: messageText,
       sender: {
         _id: userId,
         name: user.name || "You",
         username: user.username || "you",
-        image_url: user.avatar_url || "/default-avatar.png",
+        image_url: user.image_url
       },
       timestamp: new Date().toISOString(),
+      isSending: true,
+      isError: false,
+      error: undefined
     };
-
-    // Add to local state immediately for instant feedback
-    console.log('Adding optimistic message to UI');
-    setMessages((prev) => [...prev, optimisticMessage]);
-    setNewMessage("");
-
+    
+    // 3. Update UI immediately with optimistic message
+    setNewMessage('');
+    setMessages(prev => [...prev, optimisticMessage]);
+    
     try {
-      console.log('Sending message to server...');
-      // 1. First try to save to database
-      console.log('Sending POST request to /messages endpoint');
-      const res = await axios.post(
-        "http://localhost:4000/messages",
-        { message: messageText },
-        { 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-          } 
+      // 4. First try WebSocket for real-time delivery
+      if (socket?.connected) {
+        console.log("📤 Sending message via WebSocket");
+        socket.emit('sendMessage', 
+          { 
+            message: messageText,
+            tempId: tempId
+          },
+          (response: any) => {
+            console.log('📩 WebSocket ACK:', response);
+            if (response?.success && response.message) {
+              // Update the message with server data
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg._id === tempId 
+                    ? { 
+                        ...response.message,
+                        _id: response.message._id || tempId,
+                        isSending: false,
+                        isError: false
+                      }
+                    : msg
+                )
+              );
+            }
+          }
+        );
+      } else {
+        console.warn("⚠️ WebSocket not connected, falling back to HTTP");
+        // Fallback to HTTP if WebSocket is not available
+        const res = await axios.post(
+          'http://localhost:4000/messages',
+          { message: messageText },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            timeout: 5000
+          }
+        );
+        
+        if (res.data) {
+          setMessages(prev => 
+            prev.map(msg => 
+              msg._id === tempId 
+                ? { 
+                    ...res.data, 
+                    _id: res.data._id || tempId,
+                    isSending: false,
+                    isError: false
+                  } 
+                : msg
+            )
+          );
         }
-      );
-
-      console.log('Server response:', res);
-      const savedMessage = res.data;
-      console.log('Saved message from server:', savedMessage);
+      }
       
-      // 2. Update the message with server data
-      setMessages((prev) =>
-        prev.map((msg) => 
-          msg._id === optimisticMessage._id ? savedMessage : msg
+    } catch (error) {
+      console.error('❌ Error sending message:', error);
+      
+      // Mark the message as failed
+      setMessages(prev => 
+        prev.map(msg => 
+          msg._id === tempId 
+            ? { 
+                ...msg, 
+                isError: true,
+                isSending: false,
+                error: 'Failed to send. Tap to retry.' 
+              } 
+            : msg
         )
       );
-
-      // 3. Emit to socket for real-time
-      if (socket) {
-        if (socket.connected) {
-          socket.emit("sendMessage", { 
-            message: messageText, 
-            userId: userId 
-          });
-          console.log("📤 Sent message via socket");
-        } else {
-          console.warn("⚠️ Socket not connected, reconnecting...");
-          socket.connect(); // Try to reconnect
-          // If still needed, you could implement a retry mechanism here
-        }
-      } else {
-        console.warn("⚠️ Socket not initialized");
+      
+      // Re-fetch messages to ensure consistency
+      try {
+        await fetchMessages();
+      } catch (err) {
+        console.error("❌ Error fetching messages after send failure:", err);
       }
-    } catch (err: any) {
-      console.error("❌ Error sending message:", err.response?.data || err.message);
-      // Remove the optimistic message on error
-      setMessages((prev) => 
-        prev.filter((msg) => msg._id !== optimisticMessage._id)
-      );
-      alert("Failed to send message. Please try again.");
     }
   };
 
@@ -273,27 +513,28 @@ const ChatPage: React.FC = () => {
                 <p className="text-center text-gray-400">No messages yet. Start chatting!</p>
               </div>
             ) : (
-              messages.map((msg) => {
-                const isCurrentUser = msg.sender?._id === (user?._id || user?.id);
-                const senderName = isCurrentUser ? 'You' : msg.sender?.name || 'Unknown';
-                const username = msg.sender?.username || 'unknown';
-                
-                return (
-                  <div
-                    key={msg._id}
-                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-                  >
+              [...messages]
+                .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                .map((msg) => {
+                  const isCurrentUser = msg.sender?._id === (user?._id || user?.id);
+                  const isTempMessage = msg._id?.startsWith('temp-');
+                  const isError = msg.isError;
+                  
+                  return (
                     <MessageBubble
+                      key={msg._id}
                       message={msg.message}
-                      sender={senderName}
-                      username={username}
-                      timestamp={msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'Just now'}
+                      sender={msg.sender?.name || 'Unknown'}
+                      username={msg.sender?.username}
+                      timestamp={msg.timestamp || new Date().toISOString()}
                       isMe={isCurrentUser}
-                      isSending={msg._id?.startsWith?.('temp-')}
+                      isSending={isTempMessage && !isError}
+                      isError={isError}
+                      error={msg.error}
+                      onRetry={isError && isCurrentUser ? () => handleRetryMessage(msg) : undefined}
                     />
-                  </div>
-                );
-              })
+                  );
+                })
             )}
             <div ref={messagesEndRef} />
           </div>
