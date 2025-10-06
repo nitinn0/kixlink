@@ -117,25 +117,44 @@ const ChatPage: React.FC = () => {
     };
   }, []);
 
-  // 3️⃣ Load previous messages
+  // Reference to the messages container for auto-scrolling
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // 3️⃣ Fetch messages on mount and when user changes
   useEffect(() => {
     const fetchMessages = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
       try {
+        const token = localStorage.getItem("token");
+        if (!token || !user) return;
+
+        console.log("📡 Fetching messages...");
         const res = await axios.get("http://localhost:4000/messages", {
-          headers: { Authorization: `Bearer ${token}` }, // ✅ match verifyToken format
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
         });
-        setMessages(res.data.reverse());
-        console.log("✅ Messages fetched:", res.data.length);
-      } catch (err: any) {
-        console.error("❌ Failed to fetch chat history:", err.response?.data || err.message);
+        
+        if (res.data && Array.isArray(res.data)) {
+          console.log("✅ Messages fetched:", res.data.length);
+          // Sort messages by timestamp to ensure correct order
+          const sortedMessages = [...res.data].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          setMessages(sortedMessages);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching messages:", error);
       }
     };
 
     fetchMessages();
-  }, []);
+  }, [user]); // Re-fetch when user changes
 
   // 4️⃣ Send message
   const sendMessage = async () => {
@@ -242,26 +261,43 @@ const ChatPage: React.FC = () => {
         <h1 className="text-3xl font-extrabold">Public Chat</h1>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass flex-1 rounded-xl p-6 overflow-y-auto space-y-4">
-        {messages.length === 0 ? (
-          <p className="text-center text-gray-400">No messages yet. Start chatting!</p>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender?._id === (user?._id || user?.id);
-            const isTemp = msg._id?.startsWith?.("temp-");
-            return (
-              <MessageBubble
-                key={msg._id}
-                message={msg.message}
-                sender={isMe ? "You" : msg.sender?.name || "Unknown"}
-                username={msg.sender?.username}
-                timestamp={new Date(msg.timestamp).toLocaleTimeString()}
-                isMe={isMe}
-                isSending={isTemp}
-              />
-            );
-          })
-        )}
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        className="glass flex-1 rounded-xl p-6 overflow-hidden flex flex-col"
+      >
+        <div className="flex-1 flex flex-col-reverse overflow-y-auto p-4">
+          <div className="space-y-4">
+            {messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-center text-gray-400">No messages yet. Start chatting!</p>
+              </div>
+            ) : (
+              messages.map((msg) => {
+                const isCurrentUser = msg.sender?._id === (user?._id || user?.id);
+                const senderName = isCurrentUser ? 'You' : msg.sender?.name || 'Unknown';
+                const username = msg.sender?.username || 'unknown';
+                
+                return (
+                  <div
+                    key={msg._id}
+                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <MessageBubble
+                      message={msg.message}
+                      sender={senderName}
+                      username={username}
+                      timestamp={msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'Just now'}
+                      isMe={isCurrentUser}
+                      isSending={msg._id?.startsWith?.('temp-')}
+                    />
+                  </div>
+                );
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
       </motion.div>
 
       <div className="mt-4 flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl">
