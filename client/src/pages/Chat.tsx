@@ -125,21 +125,24 @@ const ChatPage: React.FC = () => {
     });
     
     // Connection error
-    newSocket.on("connect_error", (err) => {
+    newSocket.on("connect_error", (err: Error & { description?: string; context?: any }) => {
       console.error("❌ Socket connection error:", err.message);
       console.log('Connection error details:', {
         message: err.message,
-        description: err.description,
-        context: err.context
+        description: err.description || 'No description',
+        context: err.context || 'No context'
       });
       
       // Try to reconnect after a delay
-      setTimeout(() => {
+      const reconnectTimer = setTimeout(() => {
         if (!newSocket.connected) {
           console.log('Attempting to reconnect...');
           newSocket.connect();
         }
       }, 2000);
+      
+      // Clean up the timer when component unmounts
+      return () => clearTimeout(reconnectTimer);
     });
     
     // Handle disconnection
@@ -167,16 +170,6 @@ const ChatPage: React.FC = () => {
     
     newSocket.io.on("reconnect_failed", () => {
       console.error("❌ Reconnection failed after all attempts");
-    });
-
-    newSocket.on("connect", () => {
-      console.log("✅ Socket connected:", newSocket.id);
-      // Fetch latest messages when connected
-      fetchMessages();
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.warn("❌ Socket disconnected:", reason);
     });
 
     // 5️⃣ Handle retrying a failed message
