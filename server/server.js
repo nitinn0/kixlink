@@ -32,51 +32,79 @@
 
   connectDB();
 
-  // ✅ Create HTTP + Socket server
+  // Create HTTP + Socket server
   const server = http.createServer(app);
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173", // your frontend URL
+      origin: "http://localhost:5173",
       methods: ["GET", "POST"],
-    },
+      credentials: true
+    }
   });
 
-  // ✅ Socket.IO real-time connection
- io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  // Socket.IO real-time connection with error handling
+  io.on("connection", (socket) => {
+  console.log("🔌 User connected:", socket.id);
 
-  socket.on("sendMessage", async ({ message, userId }) => {
-    console.log("sendMessage received:", { message, userId });
+  // Handle incoming messages
+  socket.on("sendMessage", async ({ message, userId }, callback) => {
+    console.log("📩 Received message from user:", userId, "Content:", message);
+    
     if (!message || !userId) {
-      console.log("Invalid message or userId");
+      console.error("❌ Invalid message or userId");
+      if (callback) callback({ success: false, error: "Message and userId are required" });
       return;
     }
 
     try {
-      let chatMessage = new chatModel({ message, sender: userId });
+      // 1. Save message to database
+      let chatMessage = new chatModel({ 
+        message: message.trim(),
+        sender: userId 
+      });
+      
       await chatMessage.save();
-
-      // 🔑 Populate before emitting
+      
+      // 2. Populate sender info
       chatMessage = await chatMessage.populate("sender", "name username image_url");
-
-      console.log("Message saved & populated:", chatMessage);
-
-      io.emit("receiveMessage", chatMessage);
+      
+      // 3. Convert to plain object and add to the response
+      const messageObj = chatMessage.toObject();
+      messageObj.timestamp = messageObj.createdAt; // Ensure timestamp is set
+      
+      console.log("💾 Message saved:", messageObj);
+      
+      // 4. Broadcast to all connected clients
+      io.emit("receiveMessage", messageObj);
+      
+      // 5. Acknowledge to sender
+      if (callback) callback({ success: true, message: messageObj });
+      
     } catch (err) {
-      console.error("Error saving message:", err);
+      console.error("❌ Error processing message:", err);
+      if (callback) callback({ 
+        success: false, 
+        error: "Failed to process message",
+        details: err.message 
+      });
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+  // Handle disconnection
+  socket.on("disconnect", (reason) => {
+    console.log("❌ User disconnected:", socket.id, "Reason:", reason);
+  });
+  
+  // Handle connection errors
+  socket.on("error", (error) => {
+    console.error("❌ Socket error:", error);
   });
 });
 
-  const PORT = 4000;
-  server.listen(PORT, () => {
-    console.log(`✅ Server + Socket.IO running on port ${PORT}`);
-  });
-
+const PORT = 4000;
+server.listen(PORT, () => {
+  console.log(`✅ Server + Socket.IO running on port ${PORT}`);
+});
   cron.schedule("0 0 * * *", async () => {
     try {
       const now = new Date();

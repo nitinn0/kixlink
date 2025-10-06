@@ -68,6 +68,20 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// Get current user data
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ success: false, message: "Error fetching user data" });
+  }
+});
+
 // User Login
 router.post("/login", async (req, res) => {
   try {
@@ -95,8 +109,12 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid email/username or password" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // Generate JWT token with consistent userId field
+    const token = jwt.sign(
+      { userId: user._id, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.status(200).json({
       success: true,

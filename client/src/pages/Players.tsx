@@ -120,7 +120,7 @@ const PlayersPage: React.FC = () => {
                     <img
                       src={
                         player.image_url ||
-                        "https://via.placeholder.com/40x40?text=P"
+                        "/default-avatar.png"
                       }
                       alt={player.name}
                       className="w-10 h-10 object-cover rounded-full border border-cyan-400"

@@ -15,11 +15,14 @@ const matchSchema = new mongoose.Schema({
     players: { type: [String], default: [] }
 });
 
+
 const chatSchema = new mongoose.Schema({
   message: { type: String, required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // ✅ ensure ref to User and required
   timestamp: { type: Date, default: Date.now },
 });
+
+
 const arenaSchema = new mongoose.Schema({
     arenaName: {type: String, required:true, unique:true},
     totalCapacity: {type: Number, required:false},
