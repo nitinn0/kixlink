@@ -37,7 +37,6 @@ localStorage.setItem("name", res.data.user.name);
     }
   } catch (error) {
     console.error(error);
-    alert("Something went wrong. Please try again.");
   } finally {
     setLoading(false);
   }

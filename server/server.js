@@ -90,7 +90,6 @@
       console.log("📩 Received message from user:", socket.id, "Content:", message);
       
       if (!message) {
-        console.error("❌ Invalid message");
         if (callback) callback({ success: false, error: "Message is required" });
         return;
       }
@@ -121,7 +120,6 @@
           messageObj.tempId = tempId;
         }
         
-        console.log("💾 Message saved and broadcasting:", messageObj);
         
         // 6. Broadcast to all connected clients including sender
         io.emit("receiveMessage", messageObj);

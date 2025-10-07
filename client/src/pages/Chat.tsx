@@ -185,7 +185,7 @@ const ChatPage: React.FC = () => {
     // 5️⃣ Handle retrying a failed message
     const handleRetryMessage = async (failedMessage: Message) => {
       if (!user || !socket?.connected) {
-        console.error('Cannot retry: no user or socket not connected');
+        
         return;
       }
       
@@ -211,14 +211,13 @@ const ChatPage: React.FC = () => {
           tempId: retryMessage._id
         }, (response: any) => {
           if (response?.success) {
-            console.log('✅ Message retry successful');
+            
           } else {
             throw new Error(response?.error || 'Failed to send');
           }
         });
         
       } catch (error) {
-        console.error('Error retrying message:', error);
         
         // Mark as failed again
         setMessages(prev => 
@@ -237,7 +236,6 @@ const ChatPage: React.FC = () => {
 
     // Handle new incoming messages
     const handleNewMessage = (incomingMessage: Message & { tempId?: string }) => {
-      console.log('📨 Received new message:', incomingMessage);
       
       setMessages(prev => {
         // Normalize the message data
@@ -267,7 +265,6 @@ const ChatPage: React.FC = () => {
         }
         
         // Add new message
-        console.log('Adding new message to state:', normalizedMessage);
         return [...prev, normalizedMessage];
       });
     };
