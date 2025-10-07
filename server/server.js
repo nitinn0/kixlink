@@ -13,6 +13,7 @@
   const http = require("http");
   const { Server } = require("socket.io");
   const dotenv = require('dotenv');
+  const jwt = require('jsonwebtoken');
 
   dotenv.config();
 
@@ -42,9 +43,47 @@
     }
   });
 
+  // Socket.IO authentication middleware
+  io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    
+    if (!token) {
+      console.error("❌ No token provided in socket connection");
+      return next(new Error("Authentication error: No token provided"));
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.userId;
+      socket.isAdmin = decoded.isAdmin;
+      console.log("✅ Socket authenticated for user:", decoded.userId);
+      next();
+    } catch (err) {
+      console.error("❌ Socket authentication failed:", err.message);
+      return next(new Error("Authentication error: Invalid token"));
+    }
+  });
+
   // Socket.IO real-time connection with error handling
   io.on("connection", (socket) => {
-    console.log("🔌 User connected:", socket.id);
+    console.log("🔌 User connected:", socket.id, "User ID:", socket.userId);
+
+    // Fetch recent messages via WebSocket
+    socket.on("getMessages", async (callback) => {
+      try {
+        const messages = await chatModel
+          .find()
+          .populate("sender", "name username image_url")
+          .sort({ timestamp: 1 }) // ascending for display
+          .limit(100);
+
+        if (callback) callback({ success: true, messages });
+        else socket.emit("messages", messages);
+      } catch (err) {
+        console.error("❌ Error fetching messages via WS:", err);
+        if (callback) callback({ success: false, error: "Failed to fetch messages" });
+      }
+    });
 
     // Handle incoming messages
     socket.on("sendMessage", async ({ message, tempId }, callback) => {
@@ -57,8 +96,8 @@
       }
 
       try {
-        // 1. Get user ID from socket auth
-        const userId = socket.handshake.auth.userId;
+        // 1. Get user ID from socket (set by auth middleware)
+        const userId = socket.userId;
         if (!userId) {
           throw new Error("User not authenticated");
         }

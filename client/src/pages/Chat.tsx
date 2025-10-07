@@ -102,13 +102,12 @@ const ChatPage: React.FC = () => {
         token,
         userId: user._id || user.id
       },
-      transports: ['websocket'],
-      upgrade: false,
+      transports: ['polling', 'websocket'], // Start with polling, upgrade to websocket
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      timeout: 10000,
+      timeout: 20000,
       autoConnect: true,
       forceNew: true,
       withCredentials: true
@@ -121,7 +120,18 @@ const ChatPage: React.FC = () => {
     newSocket.on("connect", () => {
       console.log("✅ Socket connected:", newSocket.id);
       // Fetch latest messages when connected
-      fetchMessages();
+      console.log("📡 Fetching messages via WebSocket...");
+      newSocket.emit('getMessages', (response: any) => {
+        if (response?.success && Array.isArray(response.messages)) {
+          const sortedMessages = [...response.messages].sort(
+            (a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
+          );
+          console.log("✅ Messages fetched:", sortedMessages.length);
+          setMessages(sortedMessages);
+        } else {
+          console.error('❌ Error fetching messages via WS:', response?.error || 'Unknown error');
+        }
+      });
     });
     
     // Connection error
@@ -174,7 +184,10 @@ const ChatPage: React.FC = () => {
 
     // 5️⃣ Handle retrying a failed message
     const handleRetryMessage = async (failedMessage: Message) => {
-      if (!user) return;
+      if (!user || !socket?.connected) {
+        console.error('Cannot retry: no user or socket not connected');
+        return;
+      }
       
       // Remove the failed message
       setMessages(prev => prev.filter(m => m._id !== failedMessage._id));
@@ -192,36 +205,17 @@ const ChatPage: React.FC = () => {
       setMessages(prev => [...prev, retryMessage]);
       
       try {
-        // Try to send via WebSocket first
-        if (socket?.connected) {
-          socket.emit('sendMessage', {
-            message: failedMessage.message,
-            tempId: retryMessage._id
-          });
-        }
-        
-        // Then send via HTTP
-        const token = localStorage.getItem("token");
-        await axios.post(
-          'http://localhost:4000/messages',
-          { message: failedMessage.message },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            timeout: 5000
+        // Send via WebSocket only
+        socket.emit('sendMessage', {
+          message: failedMessage.message,
+          tempId: retryMessage._id
+        }, (response: any) => {
+          if (response?.success) {
+            console.log('✅ Message retry successful');
+          } else {
+            throw new Error(response?.error || 'Failed to send');
           }
-        );
-        
-        // Update the message to remove the sending state
-        setMessages(prev => 
-          prev.map(msg => 
-            msg._id === retryMessage._id 
-              ? { ...msg, isSending: false } 
-              : msg
-          )
-        );
+        });
         
       } catch (error) {
         console.error('Error retrying message:', error);
@@ -317,14 +311,13 @@ const ChatPage: React.FC = () => {
       newSocket.off("connect_error");
       newSocket.off("connect_timeout");
       newSocket.off("reconnect_attempt");
-      clearTimeout(connectionTimeout);
       
       if (newSocket.connected) {
         console.log('Disconnecting socket...');
         newSocket.disconnect();
       }
     };
-  }, [user?.id]); // Reconnect if user changes
+  }, [user]); // Reconnect if user changes
 
   // Reference to the messages container for auto-scrolling
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -334,44 +327,18 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 3️⃣ Fetch messages function
-  const fetchMessages = React.useCallback(async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  // Messages are fetched automatically when socket connects
 
-      console.log("📡 Fetching messages...");
-      const res = await axios.get("http://localhost:4000/messages", {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-      });
-      
-      if (res.data && Array.isArray(res.data)) {
-        console.log("✅ Messages fetched:", res.data.length);
-        // Sort messages by timestamp to ensure correct order
-        const sortedMessages = [...res.data].sort(
-          (a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
-        );
-        setMessages(sortedMessages);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching messages:", error);
-    }
-  }, []);
-
-  // Initial fetch on mount
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
-
-  // 4️⃣ Send message - optimized for speed and real-time updates
+  // 4️⃣ Send message - WebSocket only
   const sendMessage = async () => {
-    const token = localStorage.getItem("token");
-    if (!token || !user) {
-      console.error("No token or user found");
+    if (!user) {
+      console.error("No user found");
+      return;
+    }
+    
+    if (!socket?.connected) {
+      console.error("❌ WebSocket not connected. Cannot send message.");
+      // Optionally show a notification to the user
       return;
     }
     
@@ -403,63 +370,35 @@ const ChatPage: React.FC = () => {
     setMessages(prev => [...prev, optimisticMessage]);
     
     try {
-      // 4. First try WebSocket for real-time delivery
-      if (socket?.connected) {
-        console.log("📤 Sending message via WebSocket");
-        socket.emit('sendMessage', 
-          { 
-            message: messageText,
-            tempId: tempId
-          },
-          (response: any) => {
-            console.log('📩 WebSocket ACK:', response);
-            if (response?.success && response.message) {
-              // Update the message with server data
-              setMessages(prev => 
-                prev.map(msg => 
-                  msg._id === tempId 
-                    ? { 
-                        ...response.message,
-                        _id: response.message._id || tempId,
-                        isSending: false,
-                        isError: false
-                      }
-                    : msg
-                )
-              );
-            }
+      // 4. Send via WebSocket only
+      console.log("📤 Sending message via WebSocket");
+      socket.emit('sendMessage', 
+        { 
+          message: messageText,
+          tempId: tempId
+        },
+        (response: any) => {
+          console.log('📩 WebSocket ACK:', response);
+          if (response?.success && response.message) {
+            // Update the message with server data
+            setMessages(prev => 
+              prev.map(msg => 
+                msg._id === tempId 
+                  ? { 
+                      ...response.message,
+                      _id: response.message._id || tempId,
+                      isSending: false,
+                      isError: false
+                    }
+                  : msg
+              )
+            );
+          } else {
+            // Handle error response
+            throw new Error(response?.error || 'Failed to send message');
           }
-        );
-      } else {
-        console.warn("⚠️ WebSocket not connected, falling back to HTTP");
-        // Fallback to HTTP if WebSocket is not available
-        const res = await axios.post(
-          'http://localhost:4000/messages',
-          { message: messageText },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            timeout: 5000
-          }
-        );
-        
-        if (res.data) {
-          setMessages(prev => 
-            prev.map(msg => 
-              msg._id === tempId 
-                ? { 
-                    ...res.data, 
-                    _id: res.data._id || tempId,
-                    isSending: false,
-                    isError: false
-                  } 
-                : msg
-            )
-          );
         }
-      }
+      );
       
     } catch (error) {
       console.error('❌ Error sending message:', error);
@@ -477,13 +416,6 @@ const ChatPage: React.FC = () => {
             : msg
         )
       );
-      
-      // Re-fetch messages to ensure consistency
-      try {
-        await fetchMessages();
-      } catch (err) {
-        console.error("❌ Error fetching messages after send failure:", err);
-      }
     }
   };
 
