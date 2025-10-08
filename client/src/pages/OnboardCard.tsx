@@ -15,7 +15,7 @@ interface OnboardCardProps {
 }
 
 const OnboardCard = ({
-  duration = 30000,
+  duration = 3000,
   step1 = "Welcome Aboard",
   step2 = "Verifying Details",
   step3 = "Account Created",

@@ -24,12 +24,12 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
+    
     setLoading(true);
     setShowOnboard(true); // ✅ Show animation while registering
 
@@ -48,10 +48,12 @@ const Register = () => {
         }, 3500); // give animation time to play
       } else {
         alert(res.data.message);
+        setShowOnboard(false);
       }
     } catch (error) {
       console.error("Registration Error:", error);
       alert(error.response?.data?.message || "Server error! Please try again later.");
+      setShowOnboard(false);
     } finally {
       setLoading(false);
       // Let the animation run for a bit before hiding it
@@ -100,7 +102,7 @@ const Register = () => {
         step1="Welcome Aboard"
         step2="Verifying Details"
         step3="Creating Account"
-        duration={30000}
+        duration={3000}
       />
     </div>
     <p className="text-white mt-6 text-base animate-pulse">
