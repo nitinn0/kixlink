@@ -7,6 +7,7 @@ import "../styles/space-and-form.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState("");
   const [formData, setFormData] = useState({
     identifier: "", // ✅ One field for email OR username
     password: ""
@@ -16,6 +17,7 @@ const Login = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -86,28 +88,42 @@ localStorage.setItem("name", res.data.user.name);
         <h1 className="text-white text-3xl font-extrabold mb-6 tracking-wide drop-shadow-lg">
           Login
         </h1>
+{/* Email or Username Input */}
+<input
+  type="text"
+  name="identifier"
+  placeholder="Enter Email or Username"
+  value={formData.identifier}
+  onChange={handleChange}
+  required
+  className="w-full p-2 mb-4 rounded-lg bg-white/15 border border-white/30 text-white text-left placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
+/>
 
-        {/* Email or Username Input */}
-        <input
-          type="text"
-          name="identifier"
-          placeholder="Enter Email or Username"
-          value={formData.identifier}
-          onChange={handleChange}
-          required
-          className="w-full p-2 mb-4 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
-        />
+{/* Password Input */}
+<div className="relative">
+  <input
+    type={showPassword ? "text" : "password"}
+    name="password"
+    placeholder="Enter Password"
+    value={formData.password}
+    onChange={handleChange}
+    required
+    className="w-full p-2 pr-32 mb-6 rounded-lg bg-white/15 border border-white/30 text-white text-left placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
+  />
 
-        {/* Password Input */}
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          className="w-full p-2 mb-6 rounded-lg bg-white/15 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
-        />
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+  >
+    <img
+      src={showPassword ? "/eyes.png" : "/eyes.png"}
+      alt="Toggle visibility"
+      className="w-5 h-5 mb-5"
+    />
+  </button>
+</div>
+
 
         {/* Neon Login Button */}
         <motion.button
