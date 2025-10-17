@@ -1,0 +1,77 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+const AdminDashboard = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/auth/login");
+  };
+
+  return (
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8"
+    >
+      <motion.h1
+        className="text-4xl font-extrabold mb-8 drop-shadow-lg"
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      >
+        Admin Dashboard
+      </motion.h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
+        {/* User Management Card */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
+          onClick={() => navigate("/admin/users")}
+        >
+          <h2 className="text-xl font-bold mb-2">User Management</h2>
+          <p className="text-gray-300 text-center">
+            View, edit or delete registered users
+          </p>
+        </motion.div>
+
+        {/* Activity Logs Card */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
+          onClick={() => navigate("/admin/logs")}
+        >
+          <h2 className="text-xl font-bold mb-2">Activity Logs</h2>
+          <p className="text-gray-300 text-center">
+            Monitor user actions and system events
+          </p>
+        </motion.div>
+
+        {/* Settings Card */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
+          onClick={() => navigate("/admin/settings")}
+        >
+          <h2 className="text-xl font-bold mb-2">Settings</h2>
+          <p className="text-gray-300 text-center">
+            Update system configurations
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Logout Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleLogout}
+        className="mt-12 bg-gradient-to-r from-[#ff53bb] via-[#8f51ea] to-[#3f7cff] py-3 px-8 rounded-xl font-bold uppercase tracking-wide shadow-[0_0_25px_rgba(255,83,187,0.6)] hover:shadow-[0_0_40px_rgba(143,81,234,0.8)] transition duration-300"
+      >
+        Logout
+      </motion.button>
+    </div>
+  );
+};
+
+export default AdminDashboard;

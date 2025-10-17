@@ -9,12 +9,14 @@ import EditProfile from "./pages/EditProfile";
 import TeamsPage from "./pages/Teams";
 import ArenaDetails from "./pages/ArenaDetails";
 import ChatPage from "./pages/Chat";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/arena" element={<ArenasPage />} />
         <Route path="/arena/:id" element={<ArenaDetails />} />
         <Route path="/chat" element={<ChatPage />} />

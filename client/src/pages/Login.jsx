@@ -26,19 +26,30 @@ const handleSubmit = async (e) => {
   try {
     const res = await axios.post("http://localhost:4000/auth/login", formData);
 
-    // ✅ Save the token properly
-    localStorage.setItem("token", res.data.token);
-    console.log("Token saved:", res.data.token);
-    localStorage.setItem("username", res.data.user.username); 
-localStorage.setItem("name", res.data.user.name);
-
     if (res.data.success) {
-      navigate("/");
-    } else {
+  const { user, token } = res.data;
+
+  // Save token and user info
+  localStorage.setItem("token", token);
+  localStorage.setItem("username", user.username);
+  localStorage.setItem("name", user.name);
+  localStorage.setItem("is_admin", user.isAdmin); // ✅ use correct field
+
+  console.log("logged in user:", user);
+
+  // Navigate based on isAdmin
+  if (user.isAdmin) {
+    navigate("/admin", { replace: true });
+  } else {
+    navigate("/", { replace: true });
+  }
+}
+else {
       alert(res.data.message);
     }
   } catch (error) {
     console.error(error);
+    alert("Login failed! Check console for details.");
   } finally {
     setLoading(false);
   }
