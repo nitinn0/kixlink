@@ -27,10 +27,15 @@ const adminRoutes = [
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
+    const user = JSON.parse(localStorage.getItem("user"));
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/auth/login");
   };
+
+    const isCaptain = user?.isCaptain;
+  const isAdmin = user?.isAdmin;
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8">
@@ -40,7 +45,7 @@ const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        Admin Dashboard
+        Captain / Admin Dashboard
       </motion.h1>
 
       {/* Admin Route Cards (same UI as motion.div) */}
