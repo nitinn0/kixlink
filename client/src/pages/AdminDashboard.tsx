@@ -26,16 +26,18 @@ const adminRoutes = [
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    const user = JSON.parse(localStorage.getItem("user"));
+  // ✅ Detect role dynamically
+  const isAdmin =
+    user?.isAdmin || user?.email === "admin@gmail.com" || user?.username === "admin";
+  const isCaptain =
+    user?.isCaptain || user?.username?.toLowerCase()?.includes("captain");
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/auth/login");
   };
-
-    const isCaptain = user?.isCaptain;
-  const isAdmin = user?.isAdmin;
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8">
@@ -45,10 +47,13 @@ const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        Captain / Admin Dashboard
+        {isCaptain
+          ? "Captain Dashboard"
+          : isAdmin
+          ? "Admin Dashboard"
+          : "Dashboard"}
       </motion.h1>
 
-      {/* Admin Route Cards (same UI as motion.div) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
         {adminRoutes.map((route) => {
           const Icon = route.icon;
@@ -67,7 +72,6 @@ const AdminDashboard = () => {
         })}
       </div>
 
-      {/* Logout Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
