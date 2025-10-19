@@ -1,6 +1,28 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { FileText, PlusCircle, List } from "lucide-react";
+
+const adminRoutes = [
+  {
+    title: "Add Venue/Arena",
+    description: "Add venues and arenas",
+    path: "/admin/arena",
+    icon: FileText,
+  },
+  {
+    title: "Post Upcoming Matches",
+    description: "Add upcoming matches and its details.",
+    path: "/admin/match",
+    icon: PlusCircle,
+  },
+  {
+    title: "Add your team",
+    description: "Add and manage your team and its members.",
+    path: "/admin/teams",
+    icon: List,
+  },
+];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -11,9 +33,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8"
-    >
+    <div className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8">
       <motion.h1
         className="text-4xl font-extrabold mb-8 drop-shadow-lg"
         initial={{ opacity: 0, y: -50 }}
@@ -23,42 +43,23 @@ const AdminDashboard = () => {
         Admin Dashboard
       </motion.h1>
 
+      {/* Admin Route Cards (same UI as motion.div) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
-        {/* User Management Card */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
-          onClick={() => navigate("/admin/users")}
-        >
-          <h2 className="text-xl font-bold mb-2">User Management</h2>
-          <p className="text-gray-300 text-center">
-            View, edit or delete registered users
-          </p>
-        </motion.div>
-
-        {/* Activity Logs Card */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
-          onClick={() => navigate("/admin/logs")}
-        >
-          <h2 className="text-xl font-bold mb-2">Activity Logs</h2>
-          <p className="text-gray-300 text-center">
-            Monitor user actions and system events
-          </p>
-        </motion.div>
-
-        {/* Settings Card */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
-          onClick={() => navigate("/admin/settings")}
-        >
-          <h2 className="text-xl font-bold mb-2">Settings</h2>
-          <p className="text-gray-300 text-center">
-            Update system configurations
-          </p>
-        </motion.div>
+        {adminRoutes.map((route) => {
+          const Icon = route.icon;
+          return (
+            <motion.div
+              key={route.path}
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
+              onClick={() => navigate(route.path)}
+            >
+              <Icon className="w-10 h-10 mb-3 text-blue-400" />
+              <h2 className="text-xl font-bold mb-2">{route.title}</h2>
+              <p className="text-gray-300 text-center">{route.description}</p>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Logout Button */}
