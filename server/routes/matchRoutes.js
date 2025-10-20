@@ -26,6 +26,7 @@ router.get('/matches', verifyToken, async (req, res) => {
   }
 });
 
+
 // ✅ Get match by ID
 router.get('/matches/:id', verifyToken, async (req, res) => {
   try {

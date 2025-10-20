@@ -11,6 +11,8 @@ import ArenaDetails from "./pages/ArenaDetails";
 import ChatPage from "./pages/Chat";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddArenaPage from "./pages/admin-flow/Arenas";
+import ViewArenas from "./pages/admin-flow/ViewArenas";
+import Matches from "./pages/admin-flow/Matches";
 
 export default function App() {
   return (
@@ -19,8 +21,10 @@ export default function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/arenas" element={<AddArenaPage />} />
+        <Route path="/admin/arenas/view" element={<ViewArenas />} />
         <Route path="/arena" element={<ArenasPage />} />
         <Route path="/arena/:id" element={<ArenaDetails />} />
+        <Route path="/arena/:id/addMatch" element={<Matches />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/matches" element={<MatchesPage />} /> 

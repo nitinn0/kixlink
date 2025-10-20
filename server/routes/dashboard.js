@@ -53,6 +53,24 @@ router.get('/arena/:id', async (req, res) => {
   }
 });
 
+// Get matches for a specific arena
+router.get("/arena/:id/matches", async (req, res) => {
+  try {
+    const arenaId = req.params.id;
+
+    // ✅ Fetch matches where arena field equals arenaId
+    const matches = await matchModel
+      .find({ arenaId: arenaId }) 
+      .sort({ date: 1 })
+      .populate("arenaId", "arenaName image_url totalCapacity"); // optional: get arena details
+
+    res.status(200).json(matches);
+  } catch (error) {
+    console.error("Fetch Matches Error:", error);
+    res.status(500).json({ error: "Server Error while fetching matches" });
+  }
+});
+
 router.put("/users/update", async (req, res) => {
   console.log("📥 /users/update hit with body:", req.body);
   try {

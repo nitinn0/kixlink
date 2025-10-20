@@ -9,16 +9,20 @@ const userSchema = new mongoose.Schema({
 });
 
 const matchSchema = new mongoose.Schema({
+      arenaId: { type: mongoose.Schema.Types.ObjectId, ref: "Arena", required: true },
     venue: {type: String, required:true},
     time: {type: String, required:true},
     date: {type: Date, required: true}, 
+    slotStart: { type: Date, required: true },
     players: { type: [String], default: [] }
 });
 
+// Create unique index to prevent duplicate matches in same slot
+matchSchema.index({ arenaId: 1, slotStart: 1 }, { unique: true });
 
 const chatSchema = new mongoose.Schema({
   message: { type: String, required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // ✅ ensure ref to User and required
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, 
   timestamp: { type: Date, default: Date.now },
 });
 

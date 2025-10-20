@@ -21,55 +21,69 @@ router.post('/newAdmin', async(req, res) => {
     }
 });
 
-router.post('/addMatch', verifyAdmin, async(req, res) => {
-    try{
-        const { venue, time, date } = req.body; 
-        
-        if(!venue || !time || !date){
-            return res.status(400).json({error: "All fields required: venue, time, and date"});
-        }
-        
-        const matchDate = new Date(date);
-        if (isNaN(matchDate.getTime())) {
-            return res.status(400).json({ 
-                error: "Invalid date format. Use YYYY-MM-DD or MM/DD/YYYY" 
-            });
-        }
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (matchDate < today) {
-            return res.status(400).json({ 
-                error: "Cannot create match for past dates" 
-            });
-        }
-        
-        const newMatch = new matchModel({
-            venue: venue.trim(), 
-            time: time.trim(),
-            date: matchDate,
-            players: [] // Initialize empty players array
-        });
-        
-        await newMatch.save();
-        res.status(201).json({message: "Match Listed Successfully", match: newMatch});
-        
-    } catch(error){
-        console.error('Add Match Error:', error);
-        
-        // Handle mongoose validation errors
-        if (error.name === 'ValidationError') {
-            const errors = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({ 
-                error: "Validation Error", 
-                details: errors 
-            });
-        }
-        
-        res.status(500).json({error: "Server Error while adding match"});
+// adminRoutes.js
+router.post('/addMatch', verifyAdmin, async (req, res) => {
+  try {
+    const { venue, date, time, arenaId } = req.body;
+
+    if (!venue || !date || !time || !arenaId) {
+      return res.status(400).json({ error: "All fields required: venue, date, time, arenaId" });
     }
+
+    // Combine date + time into a single Date object
+    const [hours, minutes] = time.split(":").map(Number);
+    const matchDate = new Date(date);
+    matchDate.setHours(hours, minutes, 0, 0);
+
+    // Calculate slot start (round to hour)
+    const slotStart = new Date(date);
+    slotStart.setHours(hours, 0, 0, 0);
+
+    const today = new Date();
+    if (matchDate < today) {
+      return res.status(400).json({ error: "Cannot create match for past dates/times" });
+    }
+
+    // Check for duplicate in same 1-hour slot
+    const duplicate = await matchModel.findOne({
+      arenaId,
+      slotStart
+    });
+
+    if (duplicate) {
+      return res.status(400).json({ error: "A match is already scheduled in this time slot." });
+    }
+
+    const newMatch = new matchModel({
+      arenaId,
+      venue: venue.trim(),
+      date: matchDate,
+      time: time, // keep exact input time
+      slotStart,
+      players: []
+    });
+
+    await newMatch.save();
+    res.status(201).json({ message: "Match Listed Successfully", match: newMatch });
+
+  } catch (error) {
+    console.error("Add Match Error:", error);
+
+    // Handle unique index violation
+    if (error.code === 11000) {
+      return res.status(400).json({ error: "A match is already scheduled in this time slot." });
+    }
+
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: "Validation Error", details: errors });
+    }
+
+    res.status(500).json({ error: "Server Error while adding match" });
+  }
 });
+
+
 
 router.post('/deleteMatch/:Matchid', verifyAdmin, async(req, res) =>{
     try{

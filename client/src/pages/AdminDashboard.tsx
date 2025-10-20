@@ -11,6 +11,12 @@ const adminRoutes = [
     icon: FileText,
   },
   {
+    title: "View Venue/Arena",
+    description: "View venues and arenas",
+    path: "/admin/arenas/view",
+    icon: FileText,
+  },
+  {
     title: "Post Upcoming Matches",
     description: "Add upcoming matches and its details.",
     path: "/admin/match",
