@@ -68,12 +68,12 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  if (loading) return <p className="text-center text-white">Loading...</p>;
+  if (loading) return <p className="text-center text-[var(--text-primary)] bg-[var(--bg-primary)] h-screen flex items-center justify-center">Loading...</p>;
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
-      <div className="glass p-8 rounded-2xl w-[400px] text-white shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
+    <div className="flex items-center justify-center h-screen bg-[var(--bg-primary)]">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border)] p-8 rounded-2xl w-[400px] text-[var(--text-primary)] shadow-lg">
+        <h2 className="text-2xl font-bold mb-6 text-center text-[var(--text-accent)]">Edit Profile</h2>
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <input
             type="text"
@@ -81,7 +81,7 @@ const EditProfile: React.FC = () => {
             placeholder="Name"
             value={form.name}
             onChange={handleChange}
-            className="p-3 rounded-xl bg-white/10 outline-none"
+            className="p-3 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border)] outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)]"
           />
           <input
             type="email"
@@ -89,7 +89,7 @@ const EditProfile: React.FC = () => {
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
-            className="p-3 rounded-xl bg-white/10 outline-none"
+            className="p-3 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border)] outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)]"
           />
           <input
             type="text"
@@ -97,11 +97,11 @@ const EditProfile: React.FC = () => {
             placeholder="Username"
             value={form.username}
             onChange={handleChange}
-            className="p-3 rounded-xl bg-white/10 outline-none"
+            className="p-3 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border)] outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)]"
           />
           <button
             type="submit"
-            className="mt-4 bg-cyan-500 hover:bg-cyan-600 p-3 rounded-xl font-bold"
+            className="mt-4 bg-[var(--text-accent)] hover:opacity-80 p-3 rounded-xl font-bold text-[var(--bg-secondary)]"
           >
             Save Changes
           </button>

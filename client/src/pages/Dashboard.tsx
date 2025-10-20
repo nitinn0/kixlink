@@ -24,10 +24,13 @@ import {
   Search,
   LogOut,
   Building2,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 
 // ---- Mock Data ----
 const matchData = [
@@ -59,6 +62,7 @@ const COLORS = ["#00f0ff", "#ff00f7", "#9dff00", "#ffae00"];
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [playerCount, setPlayerCount] = useState<number>(0);
   const [matchCount, setMatchCount] = useState<number>(0);
   const [teamCount, setTeamCount] = useState<number>(0);
@@ -276,10 +280,10 @@ console.log("📤 Sending:", { id: user._id, ...formData });
   ];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white">
+    <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Sidebar */}
-      <div className="w-64 glass flex flex-col p-5 shadow-lg rounded-r-3xl">
-        <h1 className="text-3xl font-extrabold neon-text mb-8 tracking-wide">
+      <div className="w-64 bg-[var(--bg-secondary)] flex flex-col p-5 shadow-lg rounded-r-3xl border-r border-[var(--border)]">
+        <h1 className="text-3xl font-extrabold text-[var(--text-accent)] mb-8 tracking-wide">
           KixLink
         </h1>
 
@@ -288,12 +292,12 @@ console.log("📤 Sending:", { id: user._id, ...formData });
             <a
               key={idx}
               onClick={() => navigate(link.path)}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-tertiary)] transition cursor-pointer"
             >
               {link.icon}
               <span>{link.label}</span>
               {link.badge !== undefined && (
-                <span className="ml-auto bg-cyan-600 text-white text-xs px-2 py-1 rounded-full">
+                <span className="ml-auto bg-[var(--text-accent)] text-white text-xs px-2 py-1 rounded-full">
                   {link.badge}
                 </span>
               )}
@@ -305,7 +309,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           {localStorage.getItem("token") ? (
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 text-red-400 hover:text-red-500 transition"
+              className="flex items-center gap-3 text-red-500 hover:text-red-700 transition"
             >
               <LogOut size={20} /> Logout
             </button>
@@ -316,19 +320,19 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Top Navbar */}
-        <div className="glass flex items-center justify-between p-5 m-4 rounded-2xl shadow-lg">
-          <div className="relative flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl">
-  <Search size={18} className="text-cyan-400" />
+        <div className="bg-[var(--bg-secondary)] flex items-center justify-between p-5 m-4 rounded-2xl shadow-lg border border-[var(--border)]">
+          <div className="relative flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl">
+  <Search size={18} className="text-[var(--text-accent)]" />
   <input
     type="text"
     placeholder="Search players, teams, matches..."
     value={searchQuery}
     onChange={(e) => setSearchQuery(e.target.value)}
-    className="bg-transparent outline-none text-sm text-white w-full"
+    className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
   />
 
   {searchResults.length > 0 && (
-    <div className="absolute top-12 left-0 w-full bg-[#1e1e2f] rounded-xl shadow-lg border border-cyan-600 max-h-60 overflow-y-auto z-50">
+    <div className="absolute top-12 left-0 w-full bg-[var(--bg-secondary)] rounded-xl shadow-lg border border-[var(--border)] max-h-60 overflow-y-auto z-50">
       {searchResults.map((item, idx) => (
         <div
           key={idx}
@@ -337,9 +341,9 @@ console.log("📤 Sending:", { id: user._id, ...formData });
             setSearchQuery("");
             setSearchResults([]);
           }}
-          className="px-4 py-2 hover:bg-cyan-600/30 cursor-pointer text-sm text-white"
+          className="px-4 py-2 hover:bg-[var(--bg-tertiary)] cursor-pointer text-sm text-[var(--text-primary)]"
         >
-          <span className="font-semibold text-cyan-400">{item.type}</span> —{" "}
+          <span className="font-semibold text-[var(--text-accent)]">{item.type}</span> —{" "}
           {item.label}
         </div>
       ))}
@@ -350,11 +354,17 @@ console.log("📤 Sending:", { id: user._id, ...formData });
 
           
           <div className="flex items-center gap-6">
-            <Bell size={24} className="text-pink-400 cursor-pointer" />
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition"
+            >
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+            <Bell size={24} className="text-[var(--text-accent)] cursor-pointer" />
 <img
   src="https://i.pravatar.cc/40"
   alt="profile"
-  className="w-12 h-12 rounded-full border-2 border-cyan-400 cursor-pointer"
+  className="w-12 h-12 rounded-full border-2 border-[var(--text-accent)] cursor-pointer"
   onClick={() => {
     console.log("Avatar clicked ✅");
     setShowModal(true);
@@ -373,11 +383,11 @@ console.log("📤 Sending:", { id: user._id, ...formData });
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.2 }}
-                className="glass neon-card p-6 rounded-2xl text-center cursor-pointer"
+                className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center cursor-pointer shadow-lg border border-[var(--border)] hover:shadow-xl transition"
                 onClick={() => card.path && navigate(card.path)}
               >
-                <h3 className="text-gray-200 text-md">{card.title}</h3>
-                <p className="text-3xl font-extrabold text-cyan-300 mt-2">
+                <h3 className="text-[var(--text-secondary)] text-md">{card.title}</h3>
+                <p className="text-3xl font-extrabold text-[var(--text-accent)] mt-2">
                   {card.value}
                 </p>
               </motion.div>
@@ -387,21 +397,21 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           {/* Charts Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Line Chart */}
-            <div className="glass rounded-2xl p-5 neon-card">
-              <h3 className="text-xl font-semibold mb-4 neon-text">
+            <div className="bg-[var(--bg-secondary)] rounded-2xl p-5 shadow-lg border border-[var(--border)]">
+              <h3 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">
                 Matches Played
               </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={matchData}>
-                  <XAxis dataKey="day" stroke="#ccc" />
-                  <YAxis stroke="#ccc" />
+                  <XAxis dataKey="day" stroke="#666" />
+                  <YAxis stroke="#666" />
                   <Tooltip
-                    contentStyle={{ background: "#222", borderRadius: "10px" }}
+                    contentStyle={{ background: "#fff", borderRadius: "10px", border: "1px solid #ddd" }}
                   />
                   <Line
                     type="monotone"
                     dataKey="matches"
-                    stroke="#00f0ff"
+                    stroke="#2563eb"
                     strokeWidth={3}
                   />
                 </LineChart>
@@ -412,8 +422,8 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           </div>
 
           {/* Pie Chart */}
-          <div className="glass rounded-2xl p-5 neon-card mt-6">
-            <h3 className="text-xl font-semibold mb-4 neon-text">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-5 shadow-lg border border-[var(--border)] mt-6">
+            <h3 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">
               Player Positions
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -441,7 +451,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       {/* Profile Edit Modal */}
       {showModal && (
   <motion.div
-    className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm"
+    className="fixed inset-0 bg-black/30 dark:bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2 }}
@@ -450,9 +460,9 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="glass neon-card p-6 rounded-2xl w-96 text-white shadow-xl"
+      className="bg-[var(--bg-secondary)] p-6 rounded-2xl w-96 text-[var(--text-primary)] shadow-xl border border-[var(--border)]"
     >
-      <h2>Edit Profile</h2>
+      <h2 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">Edit Profile</h2>
 
             <div className="flex flex-col gap-3">
               <input
@@ -461,7 +471,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Name"
-                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                className="bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)] border border-[var(--border)]"
               />
               <input
   type="text"
@@ -469,7 +479,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
   value={formData.username}
   onChange={handleInputChange}
   placeholder="Username"
-  className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+  className="bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)] border border-[var(--border)]"
 />
               <input
                 type="email"
@@ -477,7 +487,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email"
-                className="bg-white/10 px-3 py-2 rounded-lg outline-none text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                className="bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--text-accent)] border border-[var(--border)]"
               />
               
             </div>
@@ -485,13 +495,13 @@ console.log("📤 Sending:", { id: user._id, ...formData });
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-gray-300"
+                className="px-4 py-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition text-[var(--text-primary)]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateProfile}
-                className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 transition text-white font-semibold shadow-md"
+                className="px-4 py-2 rounded-lg bg-[var(--text-accent)] hover:bg-blue-700 transition text-white font-semibold shadow-md"
               >
                 Save
               </button>

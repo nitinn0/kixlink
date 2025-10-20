@@ -1,0 +1,20 @@
+/* src/themes.css */
+:root {
+  --bg-primary: #ffffff; /* white */
+  --bg-secondary: #ffffff; /* white */
+  --bg-tertiary: #f5f5f5; /* light gray */
+  --text-primary: #000000; /* black */
+  --text-secondary: #666666; /* dark gray */
+  --text-accent: #000000; /* black */
+  --border: #000000; /* black */
+}
+
+.dark {
+  --bg-primary: #111827; /* gray-900 */
+  --bg-secondary: #1f2937; /* gray-800 */
+  --bg-tertiary: #374151; /* gray-700 */
+  --text-primary: #f9fafb; /* gray-50 */
+  --text-secondary: #9ca3af; /* gray-400 */
+  --text-accent: #60a5fa; /* blue-400 */
+  --border: #374151; /* gray-700 */
+}

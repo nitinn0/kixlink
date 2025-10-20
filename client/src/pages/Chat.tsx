@@ -417,22 +417,22 @@ const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
+    <div className="flex flex-col flex-1 h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
       <motion.div initial={{ opacity: 0, y: -25 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 mb-6">
-        <Users size={28} className="text-cyan-400" />
-        <h1 className="text-3xl font-extrabold">Public Chat</h1>
+        <Users size={28} className="text-[var(--text-accent)]" />
+        <h1 className="text-3xl font-extrabold text-[var(--text-accent)]">Public Chat</h1>
       </motion.div>
 
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
-        className="glass flex-1 rounded-xl p-6 overflow-hidden flex flex-col"
+        className="bg-[var(--bg-secondary)] border border-[var(--border)] flex-1 rounded-xl p-6 overflow-hidden flex flex-col shadow-lg"
       >
         <div className="flex-1 flex flex-col-reverse overflow-y-auto p-4">
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-center text-gray-400">No messages yet. Start chatting!</p>
+                <p className="text-center text-[var(--text-secondary)]">No messages yet. Start chatting!</p>
               </div>
             ) : (
               [...messages]
@@ -463,23 +463,23 @@ const ChatPage: React.FC = () => {
         </div>
       </motion.div>
 
-      <div className="mt-4 flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl">
+      <div className="mt-4 flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-3 rounded-xl border border-[var(--border)]">
         <input
           type="text"
           placeholder="Type a message..."
-          className="bg-transparent outline-none flex-1 text-white text-sm"
+          className="bg-transparent outline-none flex-1 text-[var(--text-primary)] text-sm placeholder-[var(--text-secondary)]"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
         <button
           onClick={() => {
-            console.log("Send clicked ✅");
+            console.log("Send clicked ");
             sendMessage();
           }}
-          className="p-2 bg-cyan-500/20 rounded-lg hover:scale-105 transition"
+          className="p-2 bg-[var(--text-accent)] rounded-lg hover:opacity-80 transition"
         >
-          <Send size={20} className="text-cyan-400" />
+          <Send size={20} className="text-[var(--bg-secondary)]" />
         </button>
       </div>
     </div>

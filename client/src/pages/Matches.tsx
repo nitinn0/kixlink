@@ -141,23 +141,23 @@ const MatchesPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
+    <div className="flex flex-col flex-1 h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
       {/* Title + Search */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-between items-center mb-6"
       >
-        <h1 className="text-3xl font-extrabold flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-[var(--text-accent)] flex items-center gap-3">
           <Calendar size={28} /> Upcoming Matches
         </h1>
 
-        <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
-          <Users size={18} className="text-cyan-400" />
+        <div className="flex items-center gap-3 bg-[var(--bg-tertiary)] border border-[var(--border)] px-4 py-2 rounded-xl w-72">
+          <Users size={18} className="text-[var(--text-accent)]" />
           <input
             type="text"
             placeholder="Search by venue or player..."
-            className="bg-transparent outline-none text-sm text-white w-full placeholder-gray-400"
+            className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full placeholder-[var(--text-secondary)]"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -169,7 +169,7 @@ const MatchesPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded-xl mb-4"
+          className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl mb-4"
         >
           {error}
         </motion.div>
@@ -178,12 +178,12 @@ const MatchesPage: React.FC = () => {
       {/* Matches Table */}
       {loading ? (
         <div className="flex justify-center items-center flex-1">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[var(--text-accent)]"></div>
         </div>
       ) : filteredMatches.length === 0 ? (
         <div className="flex flex-col items-center justify-center flex-1">
-          <Calendar size={64} className="mx-auto mb-4 text-gray-500" />
-          <p className="text-gray-400 text-xl">
+          <Calendar size={64} className="mx-auto mb-4 text-[var(--text-secondary)]" />
+          <p className="text-[var(--text-secondary)] text-xl">
             {search ? "No matches found" : "No upcoming matches"} ⚽
           </p>
         </div>
@@ -191,17 +191,17 @@ const MatchesPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-white/5 backdrop-blur-sm rounded-xl p-6 shadow-2xl overflow-x-auto"
+          className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-6 shadow-lg overflow-x-auto"
         >
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-600/50">
-                <th className="p-4 text-gray-300 font-semibold">#</th>
-                <th className="p-4 text-gray-300 font-semibold">Venue</th>
-                <th className="p-4 text-gray-300 font-semibold">Date</th>
-                <th className="p-4 text-gray-300 font-semibold">Time</th>
-                <th className="p-4 text-gray-300 font-semibold">Players</th>
-                <th className="p-4 text-gray-300 font-semibold">Actions</th>
+              <tr className="border-b border-[var(--border)]">
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">#</th>
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">Venue</th>
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">Date</th>
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">Time</th>
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">Players</th>
+                <th className="p-4 text-[var(--text-secondary)] font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -213,31 +213,31 @@ const MatchesPage: React.FC = () => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="border-b border-gray-700/30 hover:bg-white/5 transition-colors duration-200"
+                    className="border-b border-[var(--border)] hover:bg-[var(--bg-tertiary)] transition-colors duration-200"
                   >
-                    <td className="p-4 text-gray-400">{index + 1}</td>
+                    <td className="p-4 text-[var(--text-secondary)]">{index + 1}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <MapPin size={16} className="text-emerald-400" />
-                        <span className="text-white font-medium">{match.venue}</span>
+                        <MapPin size={16} className="text-[var(--text-accent)]" />
+                        <span className="text-[var(--text-primary)] font-medium">{match.venue}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-blue-400" />
-                        <span className="text-gray-200">{formatDate(match.date)}</span>
+                        <Calendar size={16} className="text-[var(--text-accent)]" />
+                        <span className="text-[var(--text-secondary)]">{formatDate(match.date)}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Clock size={16} className="text-purple-400" />
-                        <span className="text-gray-200">{match.time}</span>
+                        <Clock size={16} className="text-[var(--text-accent)]" />
+                        <span className="text-[var(--text-secondary)]">{match.time}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Users size={16} className="text-cyan-400" />
-                        <span className="text-cyan-300">{match.players.length}</span>
+                        <Users size={16} className="text-[var(--text-accent)]" />
+                        <span className="text-[var(--text-accent)]">{match.players.length}</span>
                       </div>
                     </td>
                     <td className="p-4">
@@ -247,14 +247,14 @@ const MatchesPage: React.FC = () => {
                             onClick={() => handleJoinMatch(match._id)}
                             disabled={!!userJoinedMatchId}
                             title={userJoinedMatchId ? "You can only join one match at a time" : ""}
-                            className="bg-cyan-600 hover:bg-cyan-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm disabled:opacity-50"
+                            className="bg-[var(--text-accent)] hover:opacity-80 px-3 py-1 rounded-md flex items-center gap-1 text-sm disabled:opacity-50 text-[var(--bg-secondary)]"
                           >
                             <LogIn size={14} /> Join
                           </button>
                         ) : (
                           <button
                             onClick={() => handleExitMatch(match._id)}
-                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
+                            className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md flex items-center gap-1 text-sm text-white"
                           >
                             <LogOut size={14} /> Exit
                           </button>
@@ -262,7 +262,7 @@ const MatchesPage: React.FC = () => {
 
                         <button
                           onClick={() => setSelectedMatch(match)}
-                          className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm"
+                          className="bg-gray-500 hover:bg-gray-600 px-3 py-1 rounded-md flex items-center gap-1 text-sm text-white"
                         >
                           <Eye size={14} /> View
                         </button>
@@ -278,10 +278,10 @@ const MatchesPage: React.FC = () => {
 
       {/* Players Modal */}
       {selectedMatch && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-[#1e1e2f] p-6 rounded-xl w-96">
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] p-6 rounded-xl w-96">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Users size={20} className="text-cyan-400" /> Players in{" "}
+              <Users size={20} className="text-[var(--text-accent)]" /> Players in{" "}
               {selectedMatch.venue}
             </h2>
             {selectedMatch.players.length > 0 ? (
@@ -289,18 +289,18 @@ const MatchesPage: React.FC = () => {
                 {selectedMatch.players.map((p, i) => (
                   <li
                     key={i}
-                    className="bg-white/10 px-3 py-2 rounded-md text-white"
+                    className="bg-[var(--bg-tertiary)] border border-[var(--border)] px-3 py-2 rounded-md text-[var(--text-primary)]"
                   >
                     {p}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-400 italic">No players joined yet.</p>
+              <p className="text-[var(--text-secondary)] italic">No players joined yet.</p>
             )}
             <button
               onClick={() => setSelectedMatch(null)}
-              className="mt-4 w-full bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md"
+              className="mt-4 w-full bg-red-500 hover:bg-red-600 px-3 py-2 rounded-md text-white"
             >
               Close
             </button>

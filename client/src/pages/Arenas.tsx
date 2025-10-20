@@ -37,23 +37,23 @@ const ArenasPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
+    <div className="flex flex-col flex-1 h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
       {/* Page Title + Search */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-between items-center mb-6"
       >
-        <h1 className="text-3xl font-extrabold neon-text flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-[var(--text-accent)] flex items-center gap-3">
           <Building2 size={28} /> Arenas
         </h1>
 
-        <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
-          <Search size={18} className="text-cyan-400" />
+        <div className="flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl w-72 border border-[var(--border)]">
+          <Search size={18} className="text-[var(--text-accent)]" />
           <input
             type="text"
             placeholder="Search arenas..."
-            className="bg-transparent outline-none text-sm text-white w-full"
+            className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -63,10 +63,10 @@ const ArenasPage: React.FC = () => {
       {/* Loading */}
       {loading ? (
         <div className="flex justify-center items-center flex-1">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[var(--text-accent)]"></div>
         </div>
       ) : filteredArenas.length === 0 ? (
-        <p className="text-gray-400 text-center mt-10 text-lg">No arenas found 😕</p>
+        <p className="text-[var(--text-secondary)] text-center mt-10 text-lg">No arenas found 😕</p>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
@@ -79,7 +79,7 @@ const ArenasPage: React.FC = () => {
   initial={{ opacity: 0, y: 15 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.05 }}
-  className="glass neon-card rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] transition w-[300px] mx-auto cursor-pointer"
+  className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition w-[300px] mx-auto cursor-pointer"
   onClick={() => navigate(`/arena/${arena._id}`)}
 >
   {/* Arena Image */}
@@ -97,7 +97,7 @@ const ArenasPage: React.FC = () => {
     <h2 className="text-lg font-semibold mb-2">
       {arena.arenaName || "Unnamed Arena"}
     </h2>
-    <div className="flex items-center text-cyan-300">
+    <div className="flex items-center text-[var(--text-accent)]">
       <Users size={18} className="mr-2" />
       Capacity: {arena.totalCapacity ?? "N/A"}
     </div>

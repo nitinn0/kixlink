@@ -6,7 +6,7 @@ import { Users, Calendar } from "lucide-react";
 
 type Match = {
   _id: string;
-  matchName: string;
+  venue: string;
   date: string;
 };
 
@@ -43,25 +43,24 @@ const ArenaDetails: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
 
   if (!arena)
     return (
-      <div className="text-center text-white mt-20">
+      <div className="text-center text-gray-900 mt-20">
         <p className="text-xl">Arena not found.</p>
       </div>
     );
 
   return (
-  <div className="flex flex-row p-8 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] min-h-screen text-white gap-8">
-  {/* Arena Info Card */}
+  <div className="flex flex-row p-8 bg-gray-50 min-h-screen text-gray-900 gap-8">
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="glass neon-card rounded-xl overflow-hidden shadow-lg p-6 w-1/3"
+    className="bg-white rounded-xl overflow-hidden shadow-lg p-6 w-1/3 border"
   >
     <img
       src={
@@ -72,9 +71,9 @@ const ArenaDetails: React.FC = () => {
       className="w-full h-80 object-cover rounded-lg mb-8"
     />
 
-    <h1 className="text-3xl font-bold mb-2 neon-text">{arena.arenaName}</h1>
+    <h1 className="text-3xl font-bold mb-2 text-blue-600">{arena.arenaName}</h1>
 
-    <div className="flex items-center gap-6 text-cyan-300">
+    <div className="flex items-center gap-6 text-blue-500">
       <div className="flex items-center gap-2">
         <Users size={18} />
         <span>{arena.totalCapacity ?? "N/A"} Capacity</span>
@@ -82,16 +81,15 @@ const ArenaDetails: React.FC = () => {
     </div>
   </motion.div>
 
-  {/* Matches Section */}
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="flex-1 mx-4"
   >
-    <h2 className="text-2xl font-semibold mb-4 neon-text mt-2">Matches</h2>
+    <h2 className="text-2xl font-semibold mb-4 text-blue-600 mt-2">Matches</h2>
 
     {matches.length === 0 ? (
-      <p className="text-gray-400">No matches scheduled in this arena yet.</p>
+      <p className="text-gray-500">No matches scheduled in this arena yet.</p>
     ) : (
       <motion.div
         initial={{ opacity: 0 }}
@@ -104,10 +102,10 @@ const ArenaDetails: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="glass neon-card rounded-xl overflow-hidden shadow-lg p-4 cursor-pointer hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+            className="bg-white rounded-xl overflow-hidden shadow-lg p-4 border hover:shadow-xl transition cursor-pointer"
           >
-            <h3 className="text-xl font-semibold mb-2">{match.matchName}</h3>
-            <div className="flex items-center gap-2 text-cyan-300">
+            <h3 className="text-xl font-semibold mb-2">{match.venue || "Unnamed Match"}</h3>
+            <div className="flex items-center gap-2 text-gray-600">
               <Calendar size={18} />
               <span>{new Date(match.date).toLocaleString()}</span>
             </div>

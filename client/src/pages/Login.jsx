@@ -58,10 +58,7 @@ else {
 
   return (
     <div
-      className="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center overflow-hidden"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1517747614396-d21a78b850e8?q=80&w=1600&auto=format&fit=crop')`
-      }}
+      className="relative min-h-screen w-full flex items-center justify-center bg-[var(--bg-primary)] overflow-hidden"
     >
       {/* Animated Starry Background */}
       <div id="stars"></div>
@@ -72,31 +69,22 @@ else {
       <motion.img
         src={kixlinkLogo}
         alt="KixLink Logo"
-        className="absolute top-10 left-1/2 transform -translate-x-1/2 w-40 drop-shadow-[0_0_25px_#ff53bb]"
+        className="absolute top-10 left-1/2 transform -translate-x-1/2 w-40"
         animate={{
-          scale: [1, 1.08, 1],
-          filter: [
-            "drop-shadow(0 0 15px #ff53bb)",
-            "drop-shadow(0 0 35px #8f51ea)",
-            "drop-shadow(0 0 15px #ff53bb)"
-          ]
+          scale: [1, 1.05, 1],
         }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Glassmorphic Login Form */}
+      {/* Login Form */}
       <motion.form
         onSubmit={handleSubmit}
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="relative bg-white/10 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-2xl px-10 py-8 w-[400px] flex mt-20 flex-col items-center"
-        style={{
-          boxShadow:
-            "0 0 40px rgba(255, 83, 187, 0.3), 0 0 80px rgba(143, 81, 234, 0.3)"
-        }}
+        className="relative bg-[var(--bg-secondary)] border border-[var(--border)] shadow-lg rounded-2xl px-10 py-8 w-[400px] flex mt-20 flex-col items-center"
       >
-        <h1 className="text-white text-3xl font-extrabold mb-6 tracking-wide drop-shadow-lg">
+        <h1 className="text-[var(--text-primary)] text-3xl font-extrabold mb-6 tracking-wide">
           Login
         </h1>
 {/* Email or Username Input */}
@@ -107,7 +95,7 @@ else {
   value={formData.identifier}
   onChange={handleChange}
   required
-  className="w-full p-2 mb-4 rounded-lg bg-white/15 border border-white/30 text-white text-left placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff53bb] transition duration-300"
+  className="w-full p-2 mb-4 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--text-accent)] transition duration-300"
 />
 
 {/* Password Input */}
@@ -119,7 +107,7 @@ else {
     value={formData.password}
     onChange={handleChange}
     required
-    className="w-full p-2 pr-32 mb-6 rounded-lg bg-white/15 border border-white/30 text-white text-left placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8f51ea] transition duration-300"
+    className="w-full p-2 pr-32 mb-6 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--text-accent)] transition duration-300"
   />
 
   <button
@@ -136,19 +124,19 @@ else {
 </div>
 
 
-        {/* Neon Login Button */}
+        {/* Login Button */}
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative w-full bg-gradient-to-r from-[#ff53bb] via-[#8f51ea] to-[#3f7cff] py-3 rounded-lg text-white font-bold uppercase tracking-wide shadow-[0_0_25px_rgba(255,83,187,0.6)] hover:shadow-[0_0_40px_rgba(143,81,234,0.8)] transition duration-300"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="relative w-full bg-[var(--text-accent)] py-3 rounded-lg text-[var(--bg-secondary)] font-bold uppercase tracking-wide shadow-lg hover:shadow-xl transition duration-300"
         >
           {loading ? "Logging in..." : "Login"}
         </motion.button>
 
         {/* Register Link */}
         <p
-          className="mt-6 text-gray-300 hover:text-[#ff53bb] cursor-pointer transition duration-300"
+          className="mt-6 text-[var(--text-secondary)] hover:text-[var(--text-accent)] cursor-pointer transition duration-300"
           onClick={() => navigate("/auth/register")}
         >
           Don’t have an account? Register

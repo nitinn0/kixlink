@@ -14,27 +14,30 @@ import AddArenaPage from "./pages/admin-flow/Arenas";
 import ViewArenas from "./pages/admin-flow/ViewArenas";
 import Matches from "./pages/admin-flow/Matches";
 import ManageMatches from "./pages/admin-flow/ManageMatches";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/arenas" element={<AddArenaPage />} />
-        <Route path="/admin/arenas/view" element={<ViewArenas />} />
-        <Route path="/admin/matches" element={<ManageMatches />} />
-        <Route path="/arena" element={<ArenasPage />} />
-        <Route path="/arena/:id" element={<ArenaDetails />} />
-        <Route path="/arena/:id/addMatch" element={<Matches />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/teams" element={<TeamsPage />} />
-        <Route path="/matches" element={<MatchesPage />} /> 
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/players" element={<PlayersPage />} />
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/register" element={<Register />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/arenas" element={<AddArenaPage />} />
+          <Route path="/admin/arenas/view" element={<ViewArenas />} />
+          <Route path="/admin/matches" element={<ManageMatches />} />
+          <Route path="/arena" element={<ArenasPage />} />
+          <Route path="/arena/:id" element={<ArenaDetails />} />
+          <Route path="/arena/:id/addMatch" element={<Matches />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/register" element={<Register />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

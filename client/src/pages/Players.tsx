@@ -57,23 +57,23 @@ const PlayersPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6">
+    <div className="flex flex-col flex-1 h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-6">
       {/* Page Title + Search */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-between items-center mb-6"
       >
-        <h1 className="text-3xl font-extrabold flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-[var(--text-accent)] flex items-center gap-3">
           <User size={28} /> Players
         </h1>
 
-        <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl w-72">
-          <Search size={18} className="text-cyan-400" />
+        <div className="flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl w-72 border border-[var(--border)]">
+          <Search size={18} className="text-[var(--text-accent)]" />
           <input
             type="text"
             placeholder="Search players..."
-            className="bg-transparent outline-none text-sm text-white w-full"
+            className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -83,21 +83,21 @@ const PlayersPage: React.FC = () => {
       {/* Loading / Empty / Table */}
       {loading ? (
         <div className="flex justify-center items-center flex-1">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[var(--text-accent)]"></div>
         </div>
       ) : filteredPlayers.length === 0 ? (
-        <p className="text-gray-400 text-center mt-10 text-lg">
+        <p className="text-[var(--text-secondary)] text-center mt-10 text-lg">
           No players found ⚽
         </p>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="glass rounded-xl mt-10 p-10 shadow-lg overflow-x-auto"
+          className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl mt-10 p-10 shadow-lg overflow-x-auto"
         >
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-700">
+              <tr className="border-b border-[var(--border)]">
                 <th className="p-3">#</th>
                 <th className="p-3">Avatar</th>
                 <th className="p-3">Name</th>
@@ -113,9 +113,9 @@ const PlayersPage: React.FC = () => {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="transition duration-200 ease-in-out"
+                  className="transition duration-200 ease-in-out hover:bg-[var(--bg-tertiary)]"
                 >
-                  <td className="p-3 text-gray-300">{index + 1}</td>
+                  <td className="p-3 text-[var(--text-secondary)]">{index + 1}</td>
                   <td className="p-3">
                     <img
                       src={
@@ -123,15 +123,15 @@ const PlayersPage: React.FC = () => {
                         "/default-avatar.png"
                       }
                       alt={player.name}
-                      className="w-10 h-10 object-cover rounded-full border border-cyan-400"
+                      className="w-10 h-10 object-cover rounded-full border border-[var(--text-accent)]"
                     />
                   </td>
                   <td className="p-3 font-semibold">{player.name}</td>
-                  <td className="p-3 text-gray-300">@{player.username}</td>
-                  <td className="p-3 text-cyan-300">
+                  <td className="p-3 text-[var(--text-secondary)]">@{player.username}</td>
+                  <td className="p-3 text-[var(--text-accent)]">
                     {player.position || "N/A"}
                   </td>
-                  <td className="p-3 flex items-center gap-2 text-gray-400">
+                  <td className="p-3 flex items-center gap-2 text-[var(--text-secondary)]">
                     <Calendar size={16} />{" "}
                     {new Date(player.createdAt).toLocaleDateString()}
                   </td>

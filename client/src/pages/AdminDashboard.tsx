@@ -46,7 +46,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start bg-gradient-to-r from-[#1f1c2c] via-[#928dab] to-[#1f1c2c] text-white p-8">
+    <div className="min-h-screen w-full flex flex-col items-center justify-start bg-[var(--bg-primary)] text-[var(--text-primary)] p-8">
       <motion.h1
         className="text-4xl font-extrabold mb-8 drop-shadow-lg"
         initial={{ opacity: 0, y: -50 }}
@@ -66,23 +66,23 @@ const AdminDashboard = () => {
           return (
             <motion.div
               key={route.path}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white/10 backdrop-blur-2xl border border-white/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg hover:shadow-xl transition"
               onClick={() => navigate(route.path)}
             >
-              <Icon className="w-10 h-10 mb-3 text-blue-400" />
-              <h2 className="text-xl font-bold mb-2">{route.title}</h2>
-              <p className="text-gray-300 text-center">{route.description}</p>
+              <Icon className="w-10 h-10 mb-3 text-[var(--text-accent)]" />
+              <h2 className="text-xl font-bold mb-2 text-[var(--text-primary)]">{route.title}</h2>
+              <p className="text-[var(--text-secondary)] text-center">{route.description}</p>
             </motion.div>
           );
         })}
       </div>
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         onClick={handleLogout}
-        className="mt-12 bg-gradient-to-r from-[#ff53bb] via-[#8f51ea] to-[#3f7cff] py-3 px-8 rounded-xl font-bold uppercase tracking-wide shadow-[0_0_25px_rgba(255,83,187,0.6)] hover:shadow-[0_0_40px_rgba(143,81,234,0.8)] transition duration-300"
+        className="mt-12 bg-[var(--text-accent)] py-3 px-8 rounded-xl font-bold uppercase tracking-wide shadow-lg hover:shadow-xl transition duration-300 text-[var(--bg-secondary)]"
       >
         Logout
       </motion.button>
