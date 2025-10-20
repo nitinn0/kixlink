@@ -19,7 +19,7 @@ const adminRoutes = [
   {
     title: "Post Upcoming Matches",
     description: "Add upcoming matches and its details.",
-    path: "/admin/match",
+    path: "/admin/matches",
     icon: PlusCircle,
   },
   {

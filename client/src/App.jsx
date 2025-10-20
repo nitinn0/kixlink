@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AddArenaPage from "./pages/admin-flow/Arenas";
 import ViewArenas from "./pages/admin-flow/ViewArenas";
 import Matches from "./pages/admin-flow/Matches";
+import ManageMatches from "./pages/admin-flow/ManageMatches";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/arenas" element={<AddArenaPage />} />
         <Route path="/admin/arenas/view" element={<ViewArenas />} />
+        <Route path="/admin/matches" element={<ManageMatches />} />
         <Route path="/arena" element={<ArenasPage />} />
         <Route path="/arena/:id" element={<ArenaDetails />} />
         <Route path="/arena/:id/addMatch" element={<Matches />} />
