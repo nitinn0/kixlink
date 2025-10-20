@@ -7,7 +7,7 @@ const adminRoutes = [
   {
     title: "Add Venue/Arena",
     description: "Add venues and arenas",
-    path: "/admin/arena",
+    path: "/admin/arenas",
     icon: FileText,
   },
   {
@@ -26,7 +26,7 @@ const adminRoutes = [
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   // ✅ Detect role dynamically
   const isAdmin =

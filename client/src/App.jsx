@@ -10,6 +10,7 @@ import TeamsPage from "./pages/Teams";
 import ArenaDetails from "./pages/ArenaDetails";
 import ChatPage from "./pages/Chat";
 import AdminDashboard from "./pages/AdminDashboard";
+import AddArenaPage from "./pages/admin-flow/Arenas";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/arenas" element={<AddArenaPage />} />
         <Route path="/arena" element={<ArenasPage />} />
         <Route path="/arena/:id" element={<ArenaDetails />} />
         <Route path="/chat" element={<ChatPage />} />
