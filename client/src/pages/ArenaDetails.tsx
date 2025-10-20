@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import axios from "../api/axiosConfig";
+import { useParams, useNavigate } from "react-router-dom";
+import { Calendar, Users, MapPin, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { Users, Calendar } from "lucide-react";
 
 type Match = {
   _id: string;
@@ -26,10 +26,10 @@ const ArenaDetails: React.FC = () => {
   useEffect(() => {
     const fetchArenaDetails = async () => {
       try {
-        const arenaRes = await axios.get<Arena>(`http://localhost:4000/arena/${id}`);
+        const arenaRes = await axios.get<Arena>(`/arena/${id}`);
         setArena(arenaRes.data);
 
-        const matchesRes = await axios.get<Match[]>(`http://localhost:4000/arena/${id}/matches`);
+        const matchesRes = await axios.get<Match[]>(`/arena/${id}/matches`);
         setMatches(matchesRes.data);
       } catch (error) {
         console.error("Error fetching arena details:", error);

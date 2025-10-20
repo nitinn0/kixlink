@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { Calendar, MapPin, Users, Clock, Eye, LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +34,7 @@ const MatchesPage: React.FC = () => {
     const fetchMatches = async () => {
       try {
         if (!token) return;
-        const res = await axios.get("http://localhost:4000/match/matches", {
+        const res = await axios.get("/match/matches", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -72,7 +72,7 @@ const MatchesPage: React.FC = () => {
 
     try {
       const res = await axios.post(
-        `http://localhost:4000/match/joinMatch/${matchId}`,
+        `/match/joinMatch/${matchId}`,
         { playerName: username },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -98,7 +98,7 @@ const MatchesPage: React.FC = () => {
 
     try {
       const res = await axios.post(
-        `http://localhost:4000/match/exitMatch/${matchId}`,
+        `/match/exitMatch/${matchId}`,
         { playerName: username },
         { headers: { Authorization: `Bearer ${token}` } }
       );

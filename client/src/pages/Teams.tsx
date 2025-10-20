@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { Users, Calendar, LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -22,7 +22,7 @@ const TeamsPage: React.FC = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+        const res = await axios.get("/teamMgmt/teams", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTeams(Array.isArray(res.data) ? res.data : []);
@@ -46,7 +46,7 @@ const TeamsPage: React.FC = () => {
     if (!userId) return;
     try {
       await axios.post(
-        `http://localhost:4000/teamMgmt/teams/${teamId}/members`,
+        `/teamMgmt/teams/${teamId}/members`,
         { player: userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

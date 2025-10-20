@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { motion } from "framer-motion";
 import { Send, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MessageBubble } from "../pages/MessageBubble";
+
+// Determine backend URL dynamically
+const getBackendUrl = () => {
+  const currentHost = window.location.hostname;
+
+  // If running on localhost, use localhost backend
+  if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+    return 'http://localhost:4000';
+  }
+
+  // For network access, use the same host but backend port
+  return `http://${currentHost}:4000`;
+};
 
 type Message = {
   isError: any;
@@ -53,8 +66,7 @@ const ChatPage: React.FC = () => {
     // Always try to fetch fresh user data when component mounts
     const fetchUser = async () => {
       try {
-        console.log('Fetching user data from /auth/me');
-        const res = await axios.get('http://localhost:4000/auth/me', {
+        const res = await axios.get('/auth/me', {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -114,7 +126,7 @@ const ChatPage: React.FC = () => {
     };
     
     console.log('Creating new socket with options:', socketOptions);
-    const newSocket = io("http://localhost:4000", socketOptions);
+    const newSocket = io(getBackendUrl(), socketOptions);
     
     // Connection established
     newSocket.on("connect", () => {

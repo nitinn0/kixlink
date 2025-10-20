@@ -18,7 +18,32 @@
   dotenv.config();
 
   app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, etc.)
+      if (!origin) return callback(null, true);
+
+      // Allow localhost for development
+      if (origin.startsWith('http://localhost:')) return callback(null, true);
+
+      // Allow local network IPs (192.168.x.x, 10.x.x.x, etc.)
+      if (origin.match(/^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/)) return callback(null, true);
+
+      // Allow specific origins if needed
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://192.168.1.3:5173' // Your current network IP
+      ];
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log('Blocked CORS origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }));
@@ -37,7 +62,32 @@
   const server = http.createServer(app);
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, etc.)
+        if (!origin) return callback(null, true);
+
+        // Allow localhost for development
+        if (origin && origin.startsWith('http://localhost:')) return callback(null, true);
+
+        // Allow local network IPs (192.168.x.x, 10.x.x.x, etc.)
+        if (origin && origin.match(/^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/)) return callback(null, true);
+
+        // Allow specific origins if needed
+        const allowedOrigins = [
+          'http://localhost:5173',
+          'http://127.0.0.1:5173',
+          'http://localhost:3000',
+          'http://127.0.0.1:3000',
+          'http://192.168.1.3:5173' // Your current network IP
+        ];
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        console.log('Socket.IO blocked CORS origin:', origin);
+        return callback(new Error('Not allowed by CORS'));
+      },
       methods: ["GET", "POST"],
       credentials: true
     }
@@ -156,9 +206,12 @@
   });
 });
 
-const PORT = 4000;
-server.listen(PORT, () => {
-  console.log(`✅ Server + Socket.IO running on port ${PORT}`);
+const PORT = process.env.PORT || 4000;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  console.log(`✅ Server + Socket.IO running on http://${HOST}:${PORT}`);
+  console.log(`🌐 Accessible from network at: http://[your-ip]:${PORT}`);
 });
   cron.schedule("0 0 * * *", async () => {
     try {

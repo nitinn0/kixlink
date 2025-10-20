@@ -1,6 +1,6 @@
- import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import kixlinkLogo from "../assets/logo.png";
 import "../styles/space-and-form.css";
@@ -24,7 +24,7 @@ const handleSubmit = async (e) => {
   setLoading(true);
 
   try {
-    const res = await axios.post("http://localhost:4000/auth/login", formData);
+    const res = await axios.post("/auth/login", formData);
 
     if (res.data.success) {
   const { user, token } = res.data;

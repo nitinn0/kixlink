@@ -26,10 +26,12 @@ import {
   Building2,
   Moon,
   Sun,
+  Menu,
+  X
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { useTheme } from "../contexts/ThemeContext";
 
 // ---- Mock Data ----
@@ -74,6 +76,7 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -137,7 +140,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await axios.get("http://localhost:4000/players", {
+    const res = await axios.get("/players", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -163,7 +166,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await axios.get("http://localhost:4000/teamMgmt/teams", {
+    const res = await axios.get("/teamMgmt/teams", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("✅ Teams fetched:", res.data);
@@ -187,7 +190,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await axios.get("http://localhost:4000/match/matches", {
+    const res = await axios.get("/match/matches", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -221,23 +224,32 @@ const Dashboard = () => {
     navigate("/auth/login", { replace: true });
   };
 
+  // ---- Sidebar handlers ----
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const closeSidebar = () => setIsSidebarOpen(false);
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    closeSidebar(); // Close sidebar on mobile after navigation
+  };
+
   // ---- Update Profile ----
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleUpdateProfile = async () => {
-     console.log("✅ Save clicked"); // debug
+     console.log("Save clicked"); // debug
     try {
       const token = localStorage.getItem("token");
       if (!token || !user?._id) return;
 
    const res = await axios.put(
-  "http://localhost:4000/users/update",
+  "/users/update",
   { id: user._id, name: formData.name, email: formData.email, username: formData.username },
   { headers: { Authorization: `Bearer ${token}` } }
 );
-console.log("📤 Sending:", { id: user._id, ...formData });
+console.log("Sending:", { id: user._id, ...formData });
 
 
 
@@ -281,9 +293,36 @@ console.log("📤 Sending:", { id: user._id, ...formData });
 
   return (
     <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-[var(--bg-secondary)] flex flex-col p-5 shadow-lg rounded-r-3xl border-r border-[var(--border)]">
-        <h1 className="text-3xl font-extrabold text-[var(--text-accent)] mb-8 tracking-wide">
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-[var(--bg-secondary)] flex flex-col p-5 shadow-lg rounded-r-3xl lg:rounded-none border-r border-[var(--border)]
+        transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+        transition-transform duration-300 ease-in-out
+      `}>
+        {/* Close button for mobile */}
+        <div className="flex items-center justify-between mb-8 lg:hidden">
+          <h1 className="text-3xl font-extrabold text-[var(--text-accent)] tracking-wide">
+            KixLink
+          </h1>
+          <button
+            onClick={closeSidebar}
+            className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition"
+          >
+            <X size={24} className="text-[var(--text-primary)]" />
+          </button>
+        </div>
+
+        {/* Desktop title (hidden on mobile) */}
+        <h1 className="hidden lg:block text-3xl font-extrabold text-[var(--text-accent)] mb-8 tracking-wide">
           KixLink
         </h1>
 
@@ -291,7 +330,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           {sidebarLinks.map((link, idx) => (
             <a
               key={idx}
-              onClick={() => navigate(link.path)}
+              onClick={() => handleNavigation(link.path)}
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-tertiary)] transition cursor-pointer"
             >
               {link.icon}
@@ -308,7 +347,10 @@ console.log("📤 Sending:", { id: user._id, ...formData });
         <div className="mt-auto">
           {localStorage.getItem("token") ? (
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                handleLogout();
+                closeSidebar();
+              }}
               className="flex items-center gap-3 text-red-500 hover:text-red-700 transition"
             >
               <LogOut size={20} /> Logout
@@ -318,41 +360,47 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
         {/* Top Navbar */}
         <div className="bg-[var(--bg-secondary)] flex items-center justify-between p-5 m-4 rounded-2xl shadow-lg border border-[var(--border)]">
-          <div className="relative flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl">
-  <Search size={18} className="text-[var(--text-accent)]" />
-  <input
-    type="text"
-    placeholder="Search players, teams, matches..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
-  />
+          {/* Mobile Menu Button */}
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition mr-3"
+          >
+            <Menu size={24} className="text-[var(--text-primary)]" />
+          </button>
 
-  {searchResults.length > 0 && (
-    <div className="absolute top-12 left-0 w-full bg-[var(--bg-secondary)] rounded-xl shadow-lg border border-[var(--border)] max-h-60 overflow-y-auto z-50">
-      {searchResults.map((item, idx) => (
-        <div
-          key={idx}
-          onClick={() => {
-            toast.info(`${item.type}: ${item.label}`);
-            setSearchQuery("");
-            setSearchResults([]);
-          }}
-          className="px-4 py-2 hover:bg-[var(--bg-tertiary)] cursor-pointer text-sm text-[var(--text-primary)]"
-        >
-          <span className="font-semibold text-[var(--text-accent)]">{item.type}</span> —{" "}
-          {item.label}
-        </div>
-      ))}
-    </div>
-  )}
-</div>
+          <div className="relative flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl flex-1 max-w-md">
+            <Search size={18} className="text-[var(--text-accent)]" />
+            <input
+              type="text"
+              placeholder="Search players, teams, matches..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
+            />
 
+            {searchResults.length > 0 && (
+              <div className="absolute top-12 left-0 w-full bg-[var(--bg-secondary)] rounded-xl shadow-lg border border-[var(--border)] max-h-60 overflow-y-auto z-50">
+                {searchResults.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      toast.info(`${item.type}: ${item.label}`);
+                      setSearchQuery("");
+                      setSearchResults([]);
+                    }}
+                    className="px-4 py-2 hover:bg-[var(--bg-tertiary)] cursor-pointer text-sm text-[var(--text-primary)]"
+                  >
+                    <span className="font-semibold text-[var(--text-accent)]">{item.type}</span> —{" "}
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          
           <div className="flex items-center gap-6">
             <button
               onClick={toggleTheme}
@@ -361,33 +409,33 @@ console.log("📤 Sending:", { id: user._id, ...formData });
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             <Bell size={24} className="text-[var(--text-accent)] cursor-pointer" />
-<img
-  src="https://i.pravatar.cc/40"
-  alt="profile"
-  className="w-12 h-12 rounded-full border-2 border-[var(--text-accent)] cursor-pointer"
-  onClick={() => {
-    console.log("Avatar clicked ✅");
-    setShowModal(true);
-  }}
-/>
+            <img
+              src="https://i.pravatar.cc/40"
+              alt="profile"
+              className="w-12 h-12 rounded-full border-2 border-[var(--text-accent)] cursor-pointer"
+              onClick={() => {
+                console.log("Avatar clicked ✅");
+                setShowModal(true);
+              }}
+            />
           </div>
         </div>
 
         {/* Dashboard Content */}
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
             {stats.map((card, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.2 }}
-                className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center cursor-pointer shadow-lg border border-[var(--border)] hover:shadow-xl transition"
+                className="bg-[var(--bg-secondary)] p-4 lg:p-6 rounded-2xl text-center cursor-pointer shadow-lg border border-[var(--border)] hover:shadow-xl transition"
                 onClick={() => card.path && navigate(card.path)}
               >
-                <h3 className="text-[var(--text-secondary)] text-md">{card.title}</h3>
-                <p className="text-3xl font-extrabold text-[var(--text-accent)] mt-2">
+                <h3 className="text-[var(--text-secondary)] text-sm lg:text-md">{card.title}</h3>
+                <p className="text-2xl lg:text-3xl font-extrabold text-[var(--text-accent)] mt-2">
                   {card.value}
                 </p>
               </motion.div>
@@ -395,10 +443,10 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Line Chart */}
-            <div className="bg-[var(--bg-secondary)] rounded-2xl p-5 shadow-lg border border-[var(--border)]">
-              <h3 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">
+            <div className="bg-[var(--bg-secondary)] rounded-2xl p-4 lg:p-5 shadow-lg border border-[var(--border)]">
+              <h3 className="text-lg lg:text-xl font-semibold mb-4 text-[var(--text-accent)]">
                 Matches Played
               </h3>
               <ResponsiveContainer width="100%" height={250}>
@@ -422,8 +470,8 @@ console.log("📤 Sending:", { id: user._id, ...formData });
           </div>
 
           {/* Pie Chart */}
-          <div className="bg-[var(--bg-secondary)] rounded-2xl p-5 shadow-lg border border-[var(--border)] mt-6">
-            <h3 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-4 lg:p-5 shadow-lg border border-[var(--border)] mt-4 lg:mt-6">
+            <h3 className="text-lg lg:text-xl font-semibold mb-4 text-[var(--text-accent)]">
               Player Positions
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -451,7 +499,7 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       {/* Profile Edit Modal */}
       {showModal && (
   <motion.div
-    className="fixed inset-0 bg-black/30 dark:bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm"
+    className="fixed inset-0 bg-black/30 dark:bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm p-4"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2 }}
@@ -460,9 +508,9 @@ console.log("📤 Sending:", { id: user._id, ...formData });
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-[var(--bg-secondary)] p-6 rounded-2xl w-96 text-[var(--text-primary)] shadow-xl border border-[var(--border)]"
+      className="bg-[var(--bg-secondary)] p-4 lg:p-6 rounded-2xl w-full max-w-md text-[var(--text-primary)] shadow-xl border border-[var(--border)]"
     >
-      <h2 className="text-xl font-semibold mb-4 text-[var(--text-accent)]">Edit Profile</h2>
+      <h2 className="text-lg lg:text-xl font-semibold mb-4 text-[var(--text-accent)]">Edit Profile</h2>
 
             <div className="flex flex-col gap-3">
               <input
@@ -492,16 +540,16 @@ console.log("📤 Sending:", { id: user._id, ...formData });
               
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition text-[var(--text-primary)]"
+                className="px-4 py-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition text-[var(--text-primary)] order-2 sm:order-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateProfile}
-                className="px-4 py-2 rounded-lg bg-[var(--text-accent)] hover:bg-blue-700 transition text-white font-semibold shadow-md"
+                className="px-4 py-2 rounded-lg bg-[var(--text-accent)] hover:bg-blue-700 transition text-white font-semibold shadow-md order-1 sm:order-2"
               >
                 Save
               </button>
