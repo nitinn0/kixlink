@@ -37,7 +37,7 @@ import axios from "../api/axiosConfig";
 import { useTheme } from "../contexts/ThemeContext";
 import "../styles/space-and-form.css";
 
-  const [matchData, setMatchData] = useState([]);
+
 
 const topPlayers = [
   { name: "Rohit Sharma", goals: 10 },
@@ -75,6 +75,7 @@ const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [matchData, setMatchData] = useState([]);
 
   const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
   const SESSION_CHECK_INTERVAL = 5 * 60 * 1000; // Check session every 5 minutes
@@ -112,6 +113,34 @@ const Dashboard = () => {
     email: "",
     username: "",
   });
+
+  const fetchMatches = async() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await axios.get("/match/matches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMatches(res.data);
+      setMatchCount(res.data.length);
+      // Process for chart
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const countByDay = days.map(day => {
+        const count = res.data.filter(m => {
+          const matchDate = new Date(m.date);
+          const weekday = matchDate.toLocaleDateString('en-US', { weekday: 'short' });
+          return weekday === day;
+        }).length;
+        return { day, matches: count };
+      });
+      setMatchData(countByDay);
+    } catch (err) {
+      console.error("Error fetching matches:", err);
+      setMatches([]);
+      setMatchCount(0);
+      setMatchData([]);
+    }
+  }
 
   // ---- Auth check ----
   useEffect(() => {
@@ -335,34 +364,6 @@ console.log("Sending:", { id: user._id, ...formData });
     }
   };
 
-
-  const fetchMatches = async() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      const res = await axios.get("/match/matches", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMatches(res.data);
-      setMatchCount(res.data.length);
-      // Process for chart
-      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      const countByDay = days.map(day => {
-        const count = res.data.filter(m => {
-          const matchDate = new Date(m.date);
-          const weekday = matchDate.toLocaleDateString('en-US', { weekday: 'short' });
-          return weekday === day;
-        }).length;
-        return { day, matches: count };
-      });
-      setMatchData(countByDay);
-    } catch (err) {
-      console.error("Error fetching matches:", err);
-      setMatches([]);
-      setMatchCount(0);
-      setMatchData([]);
-    }
-  }
 
   // ---- Sidebar Links ----
   const sidebarLinks = [
