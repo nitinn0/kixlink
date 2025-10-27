@@ -10,6 +10,7 @@ type Match = {
   time: string;
   date: string;
   players: string[];
+  teams?: { _id: string; teamName: string; players: string[]; totalMembers: number }[];
 };
 
 const MatchesPage: React.FC = () => {
@@ -24,42 +25,30 @@ const MatchesPage: React.FC = () => {
   const username = localStorage.getItem("username");
   const token = localStorage.getItem("token");
 
-  // ✅ Check login
-  useEffect(() => {
-    if (!token) navigate("/auth/login");
-  }, [navigate, token]);
+  const fetchMatches = async () => {
+    try {
+      if (!token) return;
+      const res = await axios.get("/match/matches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-  // ✅ Fetch matches and determine if user has joined one
-  useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        if (!token) return;
-        const res = await axios.get("/match/matches", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const data: Match[] = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.matches)
+        ? res.data.matches
+        : [];
 
-        const data: Match[] = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data.matches)
-          ? res.data.matches
-          : [];
+      setMatches(data);
 
-        setMatches(data);
-
-        // Check if user has already joined a match
-        const joined = data.find((m) => username && m.players.includes(username));
-        setUserJoinedMatchId(joined?._id || null);
-        setError("");
-      } catch (err) {
-        console.error("Error fetching matches:", err);
-        setError("Failed to fetch matches. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
-  }, [token, username]);
+      // Check if user has already joined a match
+      const joined = data.find((m) => username && m.players.includes(username));
+      setUserJoinedMatchId(joined?._id || null);
+      setError("");
+    } catch (err) {
+      console.error("Error fetching matches:", err);
+      setError("Failed to fetch matches. Please try again.");
+    }
+  };
 
   // ✅ Join Match handler
   const handleJoinMatch = async (matchId: string) => {
@@ -116,6 +105,109 @@ const MatchesPage: React.FC = () => {
     } catch (err) {
       console.error("Error exiting match:", err);
       alert("Failed to exit match");
+    }
+  };
+
+  // ✅ Join Team handler
+  const handleJoinTeam = async (matchId: string, teamId: string) => {
+    if (!token || !username) return;
+
+    // Check if already in another team for this match
+    const match = matches.find(m => m._id === matchId);
+    if (match && match.teams) {
+      const alreadyInTeam = match.teams.some(team => team.players.includes(username));
+      if (alreadyInTeam) {
+        alert("You can only join one team per match!");
+        return;
+      }
+    }
+
+    try {
+      const res = await axios.post(
+        `/teamMgmt/teams/${teamId}/members`,
+        { player: username },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Joined team:", res.data);
+
+      // Update state locally
+      setMatches((prev) =>
+        prev.map((m) =>
+          m._id === matchId
+            ? {
+                ...m,
+                teams: m.teams?.map((t) =>
+                  t._id === teamId
+                    ? { ...t, players: [...t.players, username] }
+                    : t
+                ),
+              }
+            : m
+        )
+      );
+      
+      // Update selectedMatch if it's the current modal
+      if (selectedMatch && selectedMatch._id === matchId) {
+        setSelectedMatch(prev => prev ? {
+          ...prev,
+          teams: prev.teams?.map((t) =>
+            t._id === teamId
+              ? { ...t, players: [...t.players, username] }
+              : t
+          ),
+        } : null);
+      }
+    } catch (err) {
+      console.error("Error joining team:", err);
+      alert("Failed to join team");
+    }
+  };
+
+  // ✅ Exit Team handler
+  const handleExitTeam = async (teamId: string) => {
+    if (!confirm("Are you sure you want to leave this team?")) return;
+    
+    try {
+      const res = await axios.delete(
+        `/teamMgmt/teams/${teamId}/members`,
+        {
+          data: { player: username },
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      alert("Left team successfully!");
+      
+      // Update local state
+      if (selectedMatch) {
+        setMatches((prev) =>
+          prev.map((m) =>
+            m._id === selectedMatch._id
+              ? {
+                  ...m,
+                  teams: m.teams?.map((t) =>
+                    t._id === teamId
+                      ? { ...t, players: t.players.filter((p) => p !== username) }
+                      : t
+                  ),
+                }
+              : m
+          )
+        );
+        
+        // Update selectedMatch if it's the current modal
+        setSelectedMatch(prev => prev ? {
+          ...prev,
+          teams: prev.teams?.map((t) =>
+            t._id === teamId
+              ? { ...t, players: t.players.filter((p) => p !== username) }
+              : t
+          ),
+        } : null);
+      }
+    } catch (err) {
+      console.error("Error leaving team:", err);
+      alert("Failed to leave team");
     }
   };
 
@@ -276,27 +368,47 @@ const MatchesPage: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Players Modal */}
+      {/* Teams Modal */}
       {selectedMatch && (
         <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] p-6 rounded-xl w-96">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] p-6 rounded-xl w-96 max-h-96 overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Users size={20} className="text-[var(--text-accent)]" /> Players in{" "}
+              <Users size={20} className="text-[var(--text-accent)]" /> Teams in{" "}
               {selectedMatch.venue}
             </h2>
-            {selectedMatch.players.length > 0 ? (
+            {selectedMatch.teams && selectedMatch.teams.length > 0 ? (
               <ul className="space-y-2">
-                {selectedMatch.players.map((p, i) => (
-                  <li
-                    key={i}
-                    className="bg-[var(--bg-tertiary)] border border-[var(--border)] px-3 py-2 rounded-md text-[var(--text-primary)]"
-                  >
-                    {p}
-                  </li>
-                ))}
+                {selectedMatch.teams.map((team) => {
+                  const isMember = username && team.players.includes(username);
+                  const canJoin = team.players.length < team.totalMembers;
+                  return (
+                    <li
+                      key={team._id}
+                      className="bg-[var(--bg-tertiary)] border border-[var(--border)] px-3 py-2 rounded-md flex justify-between items-center"
+                    >
+                      <span>{team.teamName} ({team.players.length}/{team.totalMembers})</span>
+                      {isMember ? (
+                        <button
+                          onClick={() => handleExitTeam(team._id)}
+                          className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm text-white"
+                        >
+                          Leave
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleJoinTeam(selectedMatch._id, team._id)}
+                          disabled={!canJoin}
+                          className="bg-[var(--text-accent)] hover:opacity-80 px-3 py-1 rounded text-sm text-white disabled:opacity-50"
+                        >
+                          {canJoin ? "Join" : "Full"}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
-              <p className="text-[var(--text-secondary)] italic">No players joined yet.</p>
+              <p className="text-[var(--text-secondary)] italic">No teams created yet.</p>
             )}
             <button
               onClick={() => setSelectedMatch(null)}

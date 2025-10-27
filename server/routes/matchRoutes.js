@@ -18,7 +18,8 @@ router.get('/matches', verifyToken, async (req, res) => {
     const matches = await matchModel
       .find({ date: { $gte: today } })
       .sort({ date: 1, time: 1 })
-      .populate("arenaId", "arenaName image_url totalCapacity");
+      .populate("arenaId", "arenaName image_url totalCapacity")
+      .populate("teams", "teamName players totalMembers");
 
     res.status(200).json(matches);
   } catch (error) {

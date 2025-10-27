@@ -14,7 +14,8 @@ const matchSchema = new mongoose.Schema({
     time: {type: String, required:true},
     date: {type: Date, required: true}, 
     slotStart: { type: Date, required: true },
-    players: { type: [String], default: [] }
+    players: { type: [String], default: [] },
+    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }]
 });
 
 // Create unique index to prevent duplicate matches in same slot
@@ -35,7 +36,8 @@ const arenaSchema = new mongoose.Schema({
 
 const teamSchema = new mongoose.Schema({
     players: {type: [String], default:[]},
-    teamName: {type: String, required:true, unique:true}
+    teamName: {type: String, required:true},
+    totalMembers: {type: Number, default: 5} // default to 5 or something
 })
 
 const playerSchema = new mongoose.Schema({

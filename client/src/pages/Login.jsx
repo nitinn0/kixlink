@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import axios from "../api/axiosConfig";
 import { useNavigate } from "react-router-dom";
@@ -26,30 +27,63 @@ const handleSubmit = async (e) => {
   try {
     const res = await axios.post("/auth/login", formData);
 
-    if (res.data.success) {
-  const { user, token } = res.data;
+    if (res?.data?.success) {
+      const { user, token } = res.data;
 
-  // Save token and user info
-  localStorage.setItem("token", token);
-  localStorage.setItem("username", user.username);
-  localStorage.setItem("name", user.name);
-  localStorage.setItem("is_admin", user.isAdmin); // ✅ use correct field
+      // ✅ Save token and user info
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("name", user.name);
+      localStorage.setItem("is_admin", user.isAdmin);
 
-  console.log("logged in user:", user);
+      console.log("✅ Logged in user:", user);
 
-  // Navigate based on isAdmin
-  if (user.isAdmin) {
-    navigate("/admin", { replace: true });
-  } else {
-    navigate("/", { replace: true });
-  }
-}
-else {
-      alert(res.data.message);
+      // ✅ Navigate based on role
+      navigate(user.isAdmin ? "/admin" : "/", { replace: true });
+    } else {
+      // Fallback for missing "success" key
+      const msg = res?.data?.message || "Unexpected response from server.";
+      toast.error(msg);
     }
+
   } catch (error) {
-    console.error(error);
-    alert("Login failed! Check console for details.");
+    console.error("❌ Login error:", error);
+
+    // Smart Error Mapping
+    let message = "Something went wrong. Please try again.";
+
+    if (error.response) {
+      // Server responded with an error
+      const status = error.response.status;
+
+      switch (status) {
+        case 400:
+          message = "Invalid credentials. Please check your input.";
+          break;
+        case 401:
+          message = "Incorrect email/username or password.";
+          break;
+        case 403:
+          message = "Your account is not authorized to log in.";
+          break;
+        case 404:
+          message = "Server endpoint not found. Please contact support.";
+          break;
+        case 500:
+          message = "Server error. Please try again later.";
+          break;
+        default:
+          message = error.response.data?.message || message;
+      }
+    } else if (error.request) {
+      // Request made but no response received
+      message = "No response from server. Check your internet connection.";
+    } else {
+      // Something else went wrong
+      message = error.message || message;
+    }
+
+    toast.error(message);
   } finally {
     setLoading(false);
   }

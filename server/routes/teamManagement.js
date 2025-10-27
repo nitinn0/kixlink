@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {teamModel} = require('../models/User');
+const {teamModel, matchModel} = require('../models/User');
 const verifyToken = require('../middlewares/verifyToken');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 router.post('/addTeam', verifyAdmin, async (req, res) => {
@@ -58,6 +58,19 @@ router.post('/teams/:id/members', verifyToken, async(req, res) => {
     if (!team) {
         return res.status(404).json({ error: "Team not found" });
     }
+
+    // Check if player is already in another team for the same match
+    const match = await matchModel.findOne({ teams: req.params.id });
+    if (match) {
+        const otherTeams = match.teams.filter(t => t.toString() !== req.params.id);
+        for (const otherTeamId of otherTeams) {
+            const otherTeam = await teamModel.findById(otherTeamId);
+            if (otherTeam && otherTeam.players.includes(player)) {
+                return res.status(400).json({ error: "Player is already in another team for this match." });
+            }
+        }
+    }
+
     team.players.push(player);
     await team.save();
     res.status(200).json({ message: "Player added to team successfully" });
@@ -73,6 +86,21 @@ router.get('/teams/:id/members', verifyToken, async(req, res) => {
     } catch (error) {
         res.status(500).json({ error: "Server error" });
     }
+});
+
+router.delete('/teams/:id/members', verifyToken, async(req, res) => {
+    const { player } = req.body;
+    if (!player) {
+        return res.status(400).json({ error: "Player name is required." });
+    }
+    const team = await teamModel.findById(req.params.id);
+    if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+    }
+
+    team.players = team.players.filter(p => p !== player);
+    await team.save();
+    res.status(200).json({ message: "Player removed from team successfully" });
 });
 
 module.exports = router;

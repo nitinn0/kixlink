@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,9 +19,24 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 
 export default function App() {
   return (
+    
     <ThemeProvider>
       <BrowserRouter>
+        <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
         <Routes>
+
+
           <Route path="/" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/arenas" element={<AddArenaPage />} />
