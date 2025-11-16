@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../api/axiosConfig";
 import { Users, Calendar, LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 type Team = {
   _id: string;
@@ -44,6 +45,17 @@ const TeamsPage: React.FC = () => {
 
   const joinTeam = async (teamId: string) => {
     if (!userId) return;
+    
+    // Check if user is already in any team
+    const isInAnyTeam = teams.some(team => 
+      team.players && team.players.includes(userId)
+    );
+
+    if (isInAnyTeam) {
+      toast('You are already in a team. Please leave your current team before joining another one.');
+      return;
+    }
+
     try {
       await axios.post(
         `/teamMgmt/teams/${teamId}/members`,
@@ -59,6 +71,12 @@ const TeamsPage: React.FC = () => {
       );
     } catch (err) {
       console.error("Error joining team:", err);
+      // If backend validation fails, show error message
+      if ((err as any).response?.data?.message) {
+        alert((err as any).response.data.message);
+      } else {
+        alert('Failed to join team. Please try again.');
+      }
     }
   };
 
