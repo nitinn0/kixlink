@@ -466,64 +466,58 @@ console.log("Sending:", { id: user._id, ...formData });
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-y-auto min-w-0 z-10">
         {/* Top Navbar */}
-        <div className="bg-[var(--bg-secondary)] flex items-center justify-between p-5 m-4 rounded-2xl shadow-lg border border-[var(--border)]">
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition mr-3"
-          >
-            <Menu size={24} className="text-[var(--text-primary)]" />
-          </button>
+       <div className="bg-[var(--bg-secondary)] flex items-center p-5 h-20 m-4 rounded-2xl shadow-lg border border-[var(--border)]">
+  
+  {/* Left: Menu + Logo */}
+  <div className="flex items-center gap-4 min-w-[220px]">
+    <button
+      onClick={toggleSidebar}
+      className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition"
+    >
+      <Menu size={24} className="text-[var(--text-primary)]" />
+    </button>
 
-          <div className="relative flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl flex-1 max-w-md">
-            <Search size={18} className="text-[var(--text-accent)]" />
-            <input
-              type="text"
-              placeholder="Search players, teams, matches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
-            />
+    <img
+      src="logo.png"
+      alt="logo"
+      className="h-24 w-auto object-contain cursor-pointer"
+      onClick={() => navigate("/")}
+    />
+  </div>
 
-            {searchResults.length > 0 && (
-              <div className="absolute top-12 left-0 w-full bg-[var(--bg-secondary)] rounded-xl shadow-lg border border-[var(--border)] max-h-60 overflow-y-auto z-50">
-                {searchResults.map((item, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      toast.info(`${item.type}: ${item.label}`);
-                      setSearchQuery("");
-                      setSearchResults([]);
-                    }}
-                    className="px-4 py-2 hover:bg-[var(--bg-tertiary)] cursor-pointer text-sm text-[var(--text-primary)]"
-                  >
-                    <span className="font-semibold text-[var(--text-accent)]">{item.type}</span> —{" "}
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+  {/* Center: Search */}
+  <div className="relative flex items-center gap-3 bg-[var(--bg-tertiary)] px-4 py-2 rounded-xl flex-1 max-w-md mx-auto">
+    <Search size={18} className="text-[var(--text-accent)]" />
+    <input
+      type="text"
+      placeholder="Search players, teams, matches..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="bg-transparent outline-none text-sm text-[var(--text-primary)] w-full"
+    />
+  </div>
 
-          <div className="flex items-center gap-6">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition"
-            >
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
-            <Bell size={24} className="text-[var(--text-accent)] cursor-pointer" />
-            <img
-              src="https://i.pravatar.cc/40"
-              alt="profile"
-              className="w-12 h-12 rounded-full border-2 border-[var(--text-accent)] cursor-pointer"
-              onClick={() => {
-                console.log("Avatar clicked ✅");
-                setShowModal(true);
-              }}
-            />
-          </div>
-        </div>
+  {/* Right: Actions */}
+  <div className="flex items-center gap-6 min-w-[200px] justify-end">
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--bg-secondary)] transition"
+    >
+      {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+    </button>
+
+    <Bell size={24} className="text-[var(--text-accent)] cursor-pointer" />
+
+    <img
+      src="https://i.pravatar.cc/40"
+      alt="profile"
+      className="w-10 h-10 rounded-full border-2 border-[var(--text-accent)] cursor-pointer"
+      onClick={() => setShowModal(true)}
+    />
+  </div>
+
+</div>
+
 
         {/* Dashboard Content */}
         <div className="p-4 lg:p-6">
