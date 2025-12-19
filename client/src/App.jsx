@@ -16,6 +16,7 @@ import ViewArenas from "./pages/admin-flow/ViewArenas";
 import Matches from "./pages/admin-flow/Matches";
 import ManageMatches from "./pages/admin-flow/ManageMatches";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import SettingsPage from "./pages/Settings";
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/players" element={<PlayersPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
         </Routes>

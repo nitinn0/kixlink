@@ -172,4 +172,106 @@ router.put("/:id", verifyToken, async (req, res) => {
 });
 
 
+// Update password
+router.put("/update-password", verifyToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Current password and new password are required" 
+      });
+    }
+
+    // Get user
+    const user = await userModel.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Current password is incorrect" 
+      });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await userModel.findByIdAndUpdate(req.userId, {
+      password: hashedNewPassword
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Password updated successfully" 
+    });
+  } catch (error) {
+    console.error("Password update error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error" 
+    });
+  }
+});
+
+// Get login audits
+router.get("/login-audits", verifyToken, async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Return mock data for now - in a real implementation, this would come from a database
+    const mockAudits = [
+      {
+        _id: "1",
+        loginTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+        ipAddress: req.ip || "192.168.1.1",
+        device: "Chrome on Windows",
+        browser: "Chrome",
+        location: "New York, USA",
+        status: "success",
+        userAgent: req.get("User-Agent")
+      },
+      {
+        _id: "2",
+        loginTime: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        ipAddress: "192.168.1.2",
+        device: "Safari on iPhone",
+        browser: "Safari",
+        location: "Los Angeles, USA",
+        status: "success",
+        userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15"
+      },
+      {
+        _id: "3",
+        loginTime: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+        ipAddress: "192.168.1.3",
+        device: "Firefox on Windows",
+        browser: "Firefox",
+        status: "failed",
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
+      }
+    ];
+
+    res.json({ 
+      success: true, 
+      audits: mockAudits 
+    });
+  } catch (error) {
+    console.error("Login audits error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error" 
+    });
+  }
+});
+
 module.exports = router;
