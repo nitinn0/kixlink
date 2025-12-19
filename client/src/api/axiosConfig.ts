@@ -23,4 +23,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ✅ Handle token expiration or unauthorized access
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && [401, 403].includes(error.response.status)) {
+      // Clear user session
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("username");
+      localStorage.removeItem("name");
+      localStorage.removeItem("is_admin");
+
+      // Redirect to login
+      window.location.href = '/auth/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
