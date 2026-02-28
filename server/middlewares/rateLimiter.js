@@ -1,36 +1,68 @@
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
+const { ipKeyGenerator } = require('express-rate-limit');
 const redisClient = require('../config/redis');
 
 /**
- * Distributed Rate Limiter using Redis
+ * Custom Redis-based Rate Limiter
  * 
  * Key concept: Rate limiting counters are stored in Redis (not server memory)
  * This means all servers share the same rate limit quota
- * 
- * Without Redis: Server 1 allows 10 requests, Server 2 allows 10 requests = 20 total (BAD)
- * With Redis: Both servers share a single counter in Redis = 10 total (GOOD)
  */
 
+// Create rate limiter with Redis store
+const createRateLimiter = (options) => {
+  return rateLimit({
+    windowMs: options.windowMs,
+    max: options.max,
+    message: options.message || 'Too many requests, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: ipKeyGenerator,
+    skip: options.skip,
+    handler: options.handler,
+    // Custom store function for Redis
+    store: {
+      incr: async (key, cb) => {
+        try {
+          const fullKey = `${options.prefix}${key}`;
+          const current = await redisClient.incr(fullKey);
+          
+          // Set expiry on first increment
+          if (current === 1) {
+            const ttlSeconds = Math.ceil(options.windowMs / 1000);
+            await redisClient.expire(fullKey, ttlSeconds);
+          }
+          
+          // Return just the count (express-rate-limit expects a number)
+          return cb(null, current);
+        } catch (error) {
+          console.error('Redis rate limit error:', error.message);
+          return cb(error);
+        }
+      },
+      resetKey: async (key, cb) => {
+        try {
+          const fullKey = `${options.prefix}${key}`;
+          await redisClient.del(fullKey);
+          return cb();
+        } catch (error) {
+          console.error('Redis reset error:', error.message);
+          return cb(error);
+        }
+      },
+    },
+  });
+};
+
 // General API rate limiter (10 requests per minute)
-const apiLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:api:', // Redis key prefix for rate limit
-  }),
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // Limit each IP to 10 requests per windowMs
+const apiLimiter = createRateLimiter({
+  prefix: 'rl:api:',
+  windowMs: 60 * 1000,
+  max: 10,
   message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: (req) => {
-    // Skip rate limiting for health checks
     if (req.path === '/api/health') return true;
     return false;
-  },
-  keyGenerator: (req) => {
-    // Use IP address as the key
-    return req.ip || req.connection.remoteAddress;
   },
   handler: (req, res) => {
     res.status(429).json({
@@ -41,29 +73,17 @@ const apiLimiter = rateLimit({
 });
 
 // Stricter rate limiter for auth routes (5 requests per 15 minutes)
-const authLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:auth:', // Different prefix for auth
-  }),
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per 15 minutes
+const authLimiter = createRateLimiter({
+  prefix: 'rl:auth:',
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: 'Too many login attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    // For auth, also consider username to prevent user enumeration
-    return `${req.ip}:${req.body?.email || 'unknown'}`;
-  },
 });
 
 // Very strict limiter for password reset (2 requests per 1 hour)
-const passwordResetLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:reset:',
-  }),
-  windowMs: 60 * 60 * 1000, // 1 hour
+const passwordResetLimiter = createRateLimiter({
+  prefix: 'rl:reset:',
+  windowMs: 60 * 60 * 1000,
   max: 2,
   message: 'Too many password reset attempts, please try again later.',
 });
@@ -76,7 +96,9 @@ const logRateLimit = (req, res, next) => {
   res.on('finish', () => {
     if (req.rateLimit) {
       const { limit, current, resetTime } = req.rateLimit;
-      console.log(`Rate limit status - Current: ${current}/${limit}, Reset: ${new Date(resetTime).toISOString()}`);
+      const resetDate = resetTime ? new Date(resetTime) : null;
+      const resetISO = resetDate && !isNaN(resetDate) ? resetDate.toISOString() : 'N/A';
+      console.log(`Rate limit status - Current: ${current}/${limit}, Reset: ${resetISO}`);
     }
   });
   next();
