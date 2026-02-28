@@ -8,12 +8,15 @@
   const teamManagement = require('./routes/teamManagement');
   const cors = require('cors');
   const dashboard = require('./routes/dashboard');
-  const cron = require("node-cron");  // ✅ require instead of import
+  const cron = require("node-cron");
   const { matchModel, chatModel } = require("../server/models/User")
   const http = require("http");
   const { Server } = require("socket.io");
+  const { createAdapter } = require("@socket.io/redis-adapter");
+  const redis = require("redis");
   const dotenv = require('dotenv');
   const jwt = require('jsonwebtoken');
+  const { apiLimiter, authLimiter, logRateLimit } = require('./middlewares/rateLimiter');
 
   dotenv.config();
 
@@ -49,6 +52,12 @@
   }));
 
   app.use(express.json());
+  
+  // ✅ Apply rate limiting to API routes
+  app.use('/api/', apiLimiter);
+  app.use('/auth/', authLimiter);
+  app.use(logRateLimit);
+  
   app.use('/', dashboard);
   app.use('/auth', authRoutes);
   app.use('/admin', adminRoutes);
@@ -92,6 +101,49 @@
       credentials: true
     }
   });
+
+  /**
+   * ✅ Setup Socket.IO Redis Adapter
+   * 
+   * This enables horizontal scaling for real-time features!
+   * 
+   * What it does:
+   * - All Socket.IO servers connect to Redis
+   * - Messages published to Redis are received by all servers
+   * - Users on different servers can communicate
+   * 
+   * Example:
+   * Server 1 (Port 4000): User A connected
+   * Server 2 (Port 4001): User B connected
+   * Server 3 (Port 4002): User C connected
+   * 
+   * When User A sends message:
+   * 1. Server 1 receives message from User A
+   * 2. Server 1 publishes to Redis channel "chat"
+   * 3. Redis broadcasts to Server 2 and Server 3
+   * 4. All users (A, B, C) receive the message!
+   */
+  (async () => {
+    try {
+      const pubClient = redis.createClient({
+        socket: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: process.env.REDIS_PORT || 6379,
+        },
+      });
+
+      const subClient = pubClient.duplicate();
+
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+
+      // Attach Redis adapter to Socket.IO
+      io.adapter(createAdapter(pubClient, subClient));
+      
+      console.log("✅ Socket.IO Redis Adapter connected - ready for scaling!");
+    } catch (err) {
+      console.error("⚠️  Redis adapter setup failed (Socket.IO will work in single-server mode):", err.message);
+    }
+  })();
 
   // Socket.IO authentication middleware
   io.use((socket, next) => {
