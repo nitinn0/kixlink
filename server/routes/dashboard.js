@@ -90,11 +90,13 @@ router.get('/players', verifyToken, async(req, res) => {
     try {
 
      const players = await playerModel.find().sort({ createdAt: -1 });
+     console.log(`📊 Fetched ${players.length} players from database`);
      if (!players || players.length === 0) {
       return res.status(404).json({ message: "No players found!" });
     }
     res.status(200).json(players);
     } catch(error){
+       console.error("❌ Error fetching players:", error);
        return res.status(500).json({error : "Internal Server Error"})
     }
 });

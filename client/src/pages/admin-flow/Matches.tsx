@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import axios from "../../api/axiosConfig";
 import { motion } from "framer-motion";
 import { Users, Calendar, PlusCircle } from "lucide-react";
 
@@ -20,7 +20,7 @@ const Matches = () => {
   useEffect(() => {
     const fetchArenaAndMatches = async () => {
       try {
-        const arenaRes = await axios.get(`http://localhost:4000/arena/${id}`);
+        const arenaRes = await axios.get(`/arena/${id}`);
         setArena(arenaRes.data);
 
         const matchesRes = await axios.get(
@@ -59,7 +59,7 @@ const Matches = () => {
     setFormData({ date: "", time: "" });
 
     // Refresh matches correctly
-    const updated = await axios.get(`http://localhost:4000/arena/${id}/matches`);
+    const updated = await axios.get(`/arena/${id}/matches`);
     setMatches(updated.data);
   } catch (err: any) {
     console.error("Error adding match:", err);

@@ -58,7 +58,8 @@
   app.use('/auth/', authLimiter);
   app.use(logRateLimit);
   
-  app.use('/', dashboard);
+  // ✅ Apply rate limiter to dashboard/public routes
+  app.use('/', apiLimiter, dashboard);
   app.use('/auth', authRoutes);
   app.use('/admin', adminRoutes);
   app.use('/match', matchRoutes);

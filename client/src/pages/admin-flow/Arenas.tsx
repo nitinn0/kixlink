@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axios from "../../api/axiosConfig";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Building2, PlusCircle } from "lucide-react";

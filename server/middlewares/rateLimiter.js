@@ -33,7 +33,7 @@ const createRateLimiter = (options) => {
             await redisClient.expire(fullKey, ttlSeconds);
           }
           
-          // Return just the count (express-rate-limit expects a number)
+          // Return just the count (express-rate-limit expects a positive integer)
           return cb(null, current);
         } catch (error) {
           console.error('Redis rate limit error:', error.message);
@@ -54,11 +54,11 @@ const createRateLimiter = (options) => {
   });
 };
 
-// General API rate limiter (10 requests per minute)
+// General API rate limiter (100 requests per minute)
 const apiLimiter = createRateLimiter({
   prefix: 'rl:api:',
   windowMs: 60 * 1000,
-  max: 10,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.',
   skip: (req) => {
     if (req.path === '/api/health') return true;

@@ -1,6 +1,6 @@
 // src/pages/admin-flow/ViewArenas.tsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../../api/axiosConfig";
 import { motion } from "framer-motion";
 import { Building2, Users, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ const ViewArenas: React.FC = () => {
   useEffect(() => {
     const fetchArenas = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/arena");
+        const res = await axios.get("/arena");
         setArenas(res.data);
       } catch (error) {
         console.error("Error fetching arenas:", error);

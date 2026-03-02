@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -22,7 +22,7 @@ const EditProfile: React.FC = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/users/${user.id}`, {
+        const res = await axios.get(`/users/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

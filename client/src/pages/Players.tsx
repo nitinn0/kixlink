@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosConfig";
 import { User, Search, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +34,7 @@ const PlayersPage: React.FC = () => {
         const token = localStorage.getItem("token");
         if (!token) return; // avoid request if not logged in
 
-        const res = await axios.get<Player[]>("http://localhost:4000/players", {
+        const res = await axios.get<Player[]>("/players", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -5,6 +5,7 @@ const verifyAdmin = require('../middlewares/verifyAdmin');
 const verifyToken = require('../middlewares/verifyToken');
 const {matchModel, teamModel} = require('../models/User');
 const bcrypt = require('bcrypt');
+const cacheManager = require('../utils/cacheManager');
 
 // Admin registration
 
@@ -64,6 +65,11 @@ router.post('/addMatch', verifyAdmin, async (req, res) => {
     });
 
     await newMatch.save();
+    
+    // ✅ Invalidate dashboard cache since matches changed
+    await cacheManager.invalidateDashboard();
+    await cacheManager.invalidateMatches();
+    
     res.status(201).json({ message: "Match Listed Successfully", match: newMatch });
 
   } catch (error) {
@@ -89,6 +95,11 @@ router.post('/deleteMatch/:Matchid', verifyAdmin, async(req, res) =>{
     try{
         const {Matchid} = req.params;
         await matchModel.findByIdAndDelete(Matchid);
+        
+        // ✅ Invalidate cache when match is deleted
+        await cacheManager.invalidateDashboard();
+        await cacheManager.invalidateMatches();
+        
         res.status(200).json({message: "Match Deleted Successfully"});
     } catch(error){
         res.status(500).json({error: "Server Error!"});
@@ -134,6 +145,10 @@ router.post('/createTeamForMatch/:matchId', verifyAdmin, async (req, res) => {
         }
 
         await match.save();
+        
+        // ✅ Invalidate cache when teams change
+        await cacheManager.invalidateDashboard();
+        await cacheManager.invalidateTeams();
 
         res.status(201).json({ message: "Team created successfully", team: newTeam });
     } catch (error) {
@@ -150,6 +165,11 @@ router.post('/addArena', verifyAdmin, async(req, res) => {
         }
         const newArena = new arenaModel({ arenaName, totalCapacity});
         await newArena.save();
+        
+        // ✅ Invalidate cache when arena is added
+        await cacheManager.invalidateDashboard();
+        await cacheManager.invalidateArenas();
+        
         res.status(200).json({message: "Arena Added Successfully"});
     } catch(error){
         res.status(500).json({error: error.message})
