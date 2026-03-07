@@ -82,13 +82,13 @@ const Dashboard = () => {
 
   const carouselSlides = [
     {
-      title: "🏆 Championship Finals",
+      title: "Championship Finals",
       description: "Watch the intense battle between top teams this weekend!",
       bg: "bg-gradient-to-r from-yellow-400 to-orange-500",
       bgImage: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=800&auto=format&fit=crop&q=60"
     },
     {
-      title: "⚽ New Training Sessions",
+      title: "New Training Sessions",
       description: "Join our expert coaches for skill-building workshops.",
       bg: "bg-gradient-to-r from-green-400 to-blue-500",
       bgImage: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&auto=format&fit=crop&q=60"
