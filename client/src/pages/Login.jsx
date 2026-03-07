@@ -14,6 +14,7 @@ const Login = () => {
     password: ""
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,6 +24,7 @@ const Login = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
+  setError(""); // Clear previous errors
 
   try {
     const res = await axios.post("/auth/login", formData);
@@ -43,6 +45,7 @@ const handleSubmit = async (e) => {
     } else {
       // Fallback for missing "success" key
       const msg = res?.data?.message || "Unexpected response from server.";
+      setError(msg);
       toast.error(msg);
     }
 
@@ -83,6 +86,7 @@ const handleSubmit = async (e) => {
       message = error.message || message;
     }
 
+    setError(message);
     toast.error(message);
   } finally {
     setLoading(false);
@@ -121,6 +125,26 @@ const handleSubmit = async (e) => {
         <h1 className="text-[var(--text-primary)] text-3xl font-extrabold mb-6 tracking-wide">
           Login
         </h1>
+
+        {/* Error Message Display */}
+        {error && (
+          <div 
+            style={{
+              width: "100%",
+              marginBottom: "16px",
+              padding: "12px",
+              backgroundColor: "#ff4444",
+              border: "1px solid #ff0000",
+              borderRadius: "8px",
+              color: "#ffffff",
+              fontSize: "14px",
+              fontWeight: "500",
+              textAlign: "center"
+            }}
+          >
+            {error}
+          </div>
+        )}
 {/* Email or Username Input */}
 <input
   type="text"

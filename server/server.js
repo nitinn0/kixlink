@@ -55,7 +55,6 @@
   
   // ✅ Apply rate limiting to API routes
   app.use('/api/', apiLimiter);
-  app.use('/auth/', authLimiter);
   app.use(logRateLimit);
   
   // ✅ Apply rate limiter to dashboard/public routes
